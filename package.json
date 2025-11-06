@@ -1,0 +1,51 @@
+{
+  "name": "franka-lang",
+  "version": "1.0.0",
+  "description": "The language of collaboration",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "franka": "./dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/cli/index.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "cli": "ts-node src/cli/index.ts",
+    "mcp": "ts-node src/mcp/index.ts",
+    "web": "ts-node src/web/index.ts"
+  },
+  "keywords": [
+    "franka",
+    "programming-language",
+    "mcp",
+    "language-specification"
+  ],
+  "author": "franka-lang",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.3",
+    "@typescript-eslint/parser": "^8.46.3",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "jest": "^30.2.0",
+    "prettier": "^3.6.2",
+    "ts-jest": "^29.4.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@types/express": "^5.0.5",
+    "@types/js-yaml": "^4.0.9",
+    "express": "^5.1.0",
+    "js-yaml": "^4.1.0"
+  }
+}
