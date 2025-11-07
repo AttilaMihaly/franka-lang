@@ -79,7 +79,7 @@ export interface LanguageSpec {
 export function loadLanguageSpec(): LanguageSpec {
   const specPath = path.join(__dirname, '../../spec/language.yaml');
   const fileContents = fs.readFileSync(specPath, 'utf8');
-  return yaml.load(fileContents) as LanguageSpec;
+  return yaml.load(fileContents, { schema: yaml.CORE_SCHEMA }) as LanguageSpec;
 }
 
 export function getVersion(): string {

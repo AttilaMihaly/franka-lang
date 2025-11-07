@@ -1,27 +1,29 @@
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 
+export type FrankaValue = string | number | boolean | null;
+
 export interface FrankaProgram {
   program: {
     name: string;
     description?: string;
   };
-  variables?: Record<string, any>;
+  variables?: Record<string, FrankaValue>;
   operations: FrankaOperation[];
 }
 
 export interface FrankaOperation {
   operation: string;
-  [key: string]: any;
+  [key: string]: any; // Dynamic operation parameters - acceptable for flexibility
 }
 
 export class FrankaInterpreter {
-  private variables: Record<string, any> = {};
+  private variables: Record<string, FrankaValue> = {};
   private output: string[] = [];
 
   loadProgram(filePath: string): FrankaProgram {
     const fileContents = fs.readFileSync(filePath, 'utf8');
-    return yaml.load(fileContents) as FrankaProgram;
+    return yaml.load(fileContents, { schema: yaml.CORE_SCHEMA }) as FrankaProgram;
   }
 
   execute(program: FrankaProgram): string[] {
