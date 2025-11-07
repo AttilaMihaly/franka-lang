@@ -4,11 +4,16 @@ The language of collaboration - A programming language designed for clear commun
 
 ## Overview
 
-Franka is a modern programming language with a self-documenting specification defined in YAML format. This repository contains the language specification and TypeScript-based tooling including a CLI, MCP (Model Context Protocol) server, and Web API server.
+Franka is a modern programming language with a self-documenting specification defined in YAML format. Programs are also written in YAML format using structured operations for clear and collaborative development. This repository contains the language specification and TypeScript-based tooling including a CLI, MCP (Model Context Protocol) server, and Web API server.
 
-## Features
+## Language Features
 
+- **YAML-Based Syntax**: Programs are written in structured YAML format
 - **Self-Documenting Specification**: Language specification in YAML format (`spec/language.yaml`)
+- **String Operations**: concat, uppercase, lowercase, length, substring
+- **Boolean Operations**: and, or, not, equals
+- **Control Flow**: if/then/else, variable assignment, print
+- **Variable References**: Use `$variable_name` to reference variables
 - **CLI Tool**: Command-line interface for running and checking Franka programs
 - **MCP Server**: Model Context Protocol server for AI integration
 - **Web API Server**: RESTful API for accessing language specification
@@ -45,7 +50,23 @@ node dist/cli/index.js --help
 npm run cli -- version          # Show version
 npm run cli -- run <file>       # Run a Franka program
 npm run cli -- check <file>     # Check syntax
-npm run cli -- repl             # Start REPL
+npm run cli -- repl             # Start REPL (coming soon)
+```
+
+#### Running Example Programs
+
+```bash
+# Run hello world example
+npm run cli -- run examples/hello.franka
+
+# Run string operations example
+npm run cli -- run examples/string-operations.franka
+
+# Run boolean logic example
+npm run cli -- run examples/boolean-logic.franka
+
+# Check syntax of a program
+npm run cli -- check examples/hello.franka
 ```
 
 ### MCP Server
@@ -134,6 +155,12 @@ npm run mcp
 franka-lang/
 ├── spec/                  # Language specification
 │   └── language.yaml      # Self-documenting YAML spec
+├── examples/              # Example Franka programs
+│   ├── hello.franka      # Hello world
+│   ├── string-operations.franka
+│   ├── boolean-logic.franka
+│   ├── conditional-string.franka
+│   └── README.md         # Examples documentation
 ├── src/
 │   ├── cli/              # Command-line interface
 │   │   └── index.ts
@@ -143,12 +170,14 @@ franka-lang/
 │   │   └── index.ts
 │   ├── shared/           # Shared utilities
 │   │   ├── spec-loader.ts
-│   │   └── spec-loader.test.ts
+│   │   ├── spec-loader.test.ts
+│   │   ├── interpreter.ts
+│   │   └── interpreter.test.ts
 │   └── index.ts          # Main library entry
 ├── dist/                 # Compiled output (generated)
 ├── tsconfig.json         # TypeScript configuration
 ├── jest.config.js        # Jest configuration
-├── .eslintrc.json        # ESLint configuration
+├── eslint.config.mjs     # ESLint configuration
 ├── .prettierrc.json      # Prettier configuration
 ├── .gitignore           # Git ignore rules
 └── package.json         # Project metadata and scripts
@@ -158,11 +187,55 @@ franka-lang/
 
 The Franka language specification is defined in `spec/language.yaml` and includes:
 
-- **Metadata**: Language name, version, description, file extensions
-- **Syntax**: Keywords, operators, data types
-- **Semantics**: Scoping rules, type system, evaluation strategy
+- **Metadata**: Language name, version, description, file extensions, syntax format
+- **Syntax**: Program structure, operations (string, boolean, control)
+- **Semantics**: Scoping rules, type system, evaluation strategy, variable references
 - **Tooling**: CLI commands, MCP capabilities, web features
 - **Examples**: Code samples demonstrating language features
+
+### Program Structure
+
+Franka programs are written in YAML format:
+
+```yaml
+program:
+  name: "Program Name"
+  description: "Program description"
+
+variables:
+  greeting: "Hello"
+  name: "World"
+
+operations:
+  - operation: concat
+    values:
+      - "$greeting"
+      - ", "
+      - "$name"
+      - "!"
+  - operation: print
+    value: "$message"
+```
+
+### Supported Operations
+
+#### String Operations
+- `concat`: Concatenate strings
+- `uppercase`: Convert string to uppercase
+- `lowercase`: Convert string to lowercase
+- `length`: Get string length
+- `substring`: Extract substring
+
+#### Boolean Operations
+- `and`: Logical AND operation
+- `or`: Logical OR operation
+- `not`: Logical NOT operation
+- `equals`: Equality comparison
+
+#### Control Operations
+- `if`: Conditional execution with then/else branches
+- `print`: Print value to output
+- `assign`: Assign value to variable
 
 View the specification file directly or access it programmatically through the API.
 
