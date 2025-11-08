@@ -41,11 +41,11 @@ function runFile(filePath: string) {
 
   try {
     const interpreter = new FrankaInterpreter();
-    const output = interpreter.executeFile(filePath);
+    const result = interpreter.executeFile(filePath);
 
-    console.log('\nProgram output:');
+    console.log('\nProgram result:');
     console.log('---------------');
-    output.forEach((line) => console.log(line));
+    console.log(result);
     console.log('---------------');
   } catch (error) {
     console.error('Error executing program:');
@@ -71,7 +71,7 @@ function checkFile(filePath: string) {
     if (program.program.description) {
       console.log(`✓ Description: ${program.program.description}`);
     }
-    console.log(`✓ Operations: ${program.operations.length}`);
+    console.log(`✓ Expression: ${program.expression ? 'present' : 'missing'}`);
     if (program.variables) {
       console.log(`✓ Variables: ${Object.keys(program.variables).length}`);
     }

@@ -1,5 +1,5 @@
 # Boolean Logic Example
-# Demonstrates boolean operations and conditional logic
+# Demonstrates boolean operations and conditional logic using let/in bindings
 
 program:
   name: "Boolean Logic"
@@ -9,46 +9,37 @@ variables:
   is_valid: true
   is_admin: false
 
-operations:
-  # Perform AND operation
-  - assign:
-      variable: "can_access"
-      value:
-        and:
-          - "$is_valid"
-          - "$is_admin"
-  
-  # Conditional check
-  - if:
-      condition: "$can_access"
-      then:
-        - print: "Access granted"
-      else:
-        - print: "Access denied"
-  
-  # Perform OR operation
-  - assign:
-      variable: "can_view"
-      value:
-        or:
-          - "$is_valid"
-          - "$is_admin"
-  
-  # Another conditional
-  - if:
-      condition: "$can_view"
-      then:
-        - print: "You can view the content"
-      else:
-        - print: "You cannot view the content"
-  
-  # NOT operation
-  - assign:
-      variable: "is_guest"
-      value:
-        not: "$is_admin"
-  
-  - if:
-      condition: "$is_guest"
-      then:
-        - print: "Welcome, guest!"
+expression:
+  let:
+    can_access:
+      and:
+        - "$is_valid"
+        - "$is_admin"
+    access_message:
+      if:
+        condition: "$can_access"
+        then: "Access granted"
+        else: "Access denied"
+    can_view:
+      or:
+        - "$is_valid"
+        - "$is_admin"
+    view_message:
+      if:
+        condition: "$can_view"
+        then: "You can view the content"
+        else: "You cannot view the content"
+    is_guest:
+      not: "$is_admin"
+    guest_message:
+      if:
+        condition: "$is_guest"
+        then: "Welcome, guest!"
+        else: null
+    in:
+      concat:
+        - "$access_message"
+        - "\n"
+        - "$view_message"
+        - "\n"
+        - "$guest_message"

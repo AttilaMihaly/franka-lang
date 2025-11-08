@@ -1,5 +1,5 @@
 # String Operations Example
-# Demonstrates string manipulation operations
+# Demonstrates string manipulation operations using let/in bindings
 
 program:
   name: "String Operations"
@@ -9,34 +9,22 @@ variables:
   greeting: "Hello"
   name: "World"
 
-operations:
-  # Concatenate strings to create a message
-  - assign:
-      variable: "message"
-      value:
-        concat:
-          - "$greeting"
-          - ", "
-          - "$name"
-          - "!"
-  
-  # Print the concatenated message
-  - print: "$message"
-  
-  # Convert message to uppercase
-  - assign:
-      variable: "upper_message"
-      value:
-        uppercase: "$message"
-  
-  # Print uppercase message
-  - print: "$upper_message"
-  
-  # Convert to lowercase
-  - assign:
-      variable: "lower_message"
-      value:
-        lowercase: "$message"
-  
-  # Print lowercase message
-  - print: "$lower_message"
+expression:
+  let:
+    message:
+      concat:
+        - "$greeting"
+        - ", "
+        - "$name"
+        - "!"
+    upper_message:
+      uppercase: "$message"
+    lower_message:
+      lowercase: "$message"
+    in:
+      concat:
+        - "$message"
+        - "\n"
+        - "$upper_message"
+        - "\n"
+        - "$lower_message"

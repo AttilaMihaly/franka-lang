@@ -9,7 +9,7 @@ export interface FrankaProgram {
     description?: string;
   };
   variables?: Record<string, FrankaValue>;
-  operations: FrankaOperation[];
+  expression: any;
 }
 
 export interface FrankaOperation {
@@ -18,39 +18,59 @@ export interface FrankaOperation {
 
 export class FrankaInterpreter {
   private variables: Record<string, FrankaValue> = {};
-  private output: string[] = [];
 
   loadProgram(filePath: string): FrankaProgram {
     const fileContents = fs.readFileSync(filePath, 'utf8');
     return yaml.load(fileContents, { schema: yaml.CORE_SCHEMA }) as FrankaProgram;
   }
 
-  execute(program: FrankaProgram): string[] {
-    this.output = [];
+  execute(program: FrankaProgram): FrankaValue {
     this.variables = program.variables ? { ...program.variables } : {};
-
-    for (const operation of program.operations) {
-      this.executeOperation(operation);
-    }
-
-    return this.output;
+    return this.evaluate(program.expression);
   }
 
-  executeFile(filePath: string): string[] {
+  executeFile(filePath: string): FrankaValue {
     const program = this.loadProgram(filePath);
     return this.execute(program);
   }
 
-  private executeOperation(operation: FrankaOperation): any {
-    // Get the operation name (first key in the object)
-    const operationName = Object.keys(operation)[0];
-    const operationArgs = operation[operationName];
+  private evaluate(expression: any): any {
+    // Handle primitive values
+    if (expression === null || expression === undefined) {
+      return expression;
+    }
+
+    // Handle variable references
+    if (typeof expression === 'string' && expression.startsWith('$')) {
+      const varName = expression.substring(1);
+      if (!(varName in this.variables)) {
+        throw new Error(`Undefined variable: ${varName}`);
+      }
+      return this.variables[varName];
+    }
+
+    // Handle primitive types (string, number, boolean)
+    if (typeof expression !== 'object') {
+      return expression;
+    }
+
+    // Handle arrays
+    if (Array.isArray(expression)) {
+      return expression.map((item) => this.evaluate(item));
+    }
+
+    // Handle operations (object with operation name as key)
+    const keys = Object.keys(expression);
+    if (keys.length === 0) {
+      return expression;
+    }
+
+    const operationName = keys[0];
+    const operationArgs = expression[operationName];
 
     switch (operationName) {
-      case 'print':
-        return this.executePrint(operationArgs);
-      case 'assign':
-        return this.executeAssign(operationArgs);
+      case 'let':
+        return this.executeLet(operationArgs);
       case 'concat':
         return this.executeConcat(operationArgs);
       case 'uppercase':
@@ -76,46 +96,46 @@ export class FrankaInterpreter {
     }
   }
 
-  private resolveValue(value: any): any {
-    if (typeof value === 'string' && value.startsWith('$')) {
-      const varName = value.substring(1);
-      if (!(varName in this.variables)) {
-        throw new Error(`Undefined variable: ${varName}`);
-      }
-      return this.variables[varName];
+  private executeLet(args: any): any {
+    if (!args || typeof args !== 'object') {
+      throw new Error('let operation requires bindings and an "in" expression');
     }
 
-    // Check if value is an operation (object with operation name as key)
-    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-      const keys = Object.keys(value);
-      if (keys.length > 0) {
-        // This is likely an operation call
-        return this.executeOperation(value);
+    // Save current variable scope
+    const savedVariables = { ...this.variables };
+
+    // Process bindings - each key is a variable name, each value is the value to bind
+    // The "in" key contains the expression to evaluate with these bindings
+    const inExpression = args.in;
+    if (!inExpression) {
+      throw new Error('let operation requires an "in" expression');
+    }
+
+    // Add bindings sequentially so later bindings can reference earlier ones
+    for (const [key, value] of Object.entries(args)) {
+      if (key !== 'in') {
+        this.variables[key] = this.evaluate(value);
       }
     }
 
-    return value;
+    // Evaluate the "in" expression with the new bindings
+    const result = this.evaluate(inExpression);
+
+    // Restore previous variable scope by clearing and repopulating
+    // Don't replace the object to avoid breaking outer scopes
+    for (const key of Object.keys(this.variables)) {
+      delete this.variables[key];
+    }
+    Object.assign(this.variables, savedVariables);
+
+    return result;
   }
 
   private extractValue(args: any): any {
     // Helper method to extract value from args (can be direct or in a 'value' property)
     return typeof args === 'object' && args !== null && !Array.isArray(args) && 'value' in args
-      ? this.resolveValue(args.value)
-      : this.resolveValue(args);
-  }
-
-  private executePrint(args: any): void {
-    const value = this.extractValue(args);
-    this.output.push(String(value));
-  }
-
-  private executeAssign(args: any): void {
-    if (!args || typeof args !== 'object' || !('variable' in args) || !('value' in args)) {
-      throw new Error('assign operation requires "variable" and "value" properties');
-    }
-    const variable = args.variable;
-    const value = this.resolveValue(args.value);
-    this.variables[variable] = value;
+      ? this.evaluate(args.value)
+      : this.evaluate(args);
   }
 
   private executeConcat(args: any): string {
@@ -128,7 +148,7 @@ export class FrankaInterpreter {
     } else {
       throw new Error('concat operation requires an array or an object with "values" property');
     }
-    return values.map((v: any) => this.resolveValue(v)).join('');
+    return values.map((v: any) => this.evaluate(v)).join('');
   }
 
   private executeUppercase(args: any): string {
@@ -150,9 +170,9 @@ export class FrankaInterpreter {
     if (!args || typeof args !== 'object' || !('value' in args) || !('start' in args)) {
       throw new Error('substring operation requires "value" and "start" properties');
     }
-    const value = this.resolveValue(args.value);
-    const start = this.resolveValue(args.start);
-    const end = args.end !== undefined ? this.resolveValue(args.end) : undefined;
+    const value = this.evaluate(args.value);
+    const start = this.evaluate(args.start);
+    const end = args.end !== undefined ? this.evaluate(args.end) : undefined;
     return String(value).substring(start, end);
   }
 
@@ -166,7 +186,7 @@ export class FrankaInterpreter {
     } else {
       throw new Error('and operation requires an array or an object with "values" property');
     }
-    return values.map((v: any) => this.resolveValue(v)).every((v: any) => Boolean(v));
+    return values.map((v: any) => this.evaluate(v)).every((v: any) => Boolean(v));
   }
 
   private executeOr(args: any): boolean {
@@ -179,7 +199,7 @@ export class FrankaInterpreter {
     } else {
       throw new Error('or operation requires an array or an object with "values" property');
     }
-    return values.map((v: any) => this.resolveValue(v)).some((v: any) => Boolean(v));
+    return values.map((v: any) => this.evaluate(v)).some((v: any) => Boolean(v));
   }
 
   private executeNot(args: any): boolean {
@@ -191,29 +211,26 @@ export class FrankaInterpreter {
     if (!args || typeof args !== 'object' || !('left' in args) || !('right' in args)) {
       throw new Error('equals operation requires "left" and "right" properties');
     }
-    const left = this.resolveValue(args.left);
-    const right = this.resolveValue(args.right);
+    const left = this.evaluate(args.left);
+    const right = this.evaluate(args.right);
     return left === right;
   }
 
-  private executeIf(args: any): void {
+  private executeIf(args: any): any {
     if (!args || typeof args !== 'object' || !('condition' in args)) {
       throw new Error('if operation requires "condition" property');
     }
-    const condition = this.resolveValue(args.condition);
+    const condition = this.evaluate(args.condition);
 
     if (Boolean(condition)) {
-      if (args.then) {
-        for (const op of args.then) {
-          this.executeOperation(op);
-        }
+      if (args.then !== undefined) {
+        return this.evaluate(args.then);
       }
     } else {
-      if (args.else) {
-        for (const op of args.else) {
-          this.executeOperation(op);
-        }
+      if (args.else !== undefined) {
+        return this.evaluate(args.else);
       }
     }
+    return null;
   }
 }
