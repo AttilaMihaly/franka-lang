@@ -1,0 +1,27 @@
+# Output Section Example - Single Unnamed Output
+# Demonstrates a program with a single output declaration
+
+program:
+  name: "Single Output"
+  description: "Program with a single unnamed output"
+
+input:
+  greeting:
+    type: string
+    default: "Hello"
+  name:
+    type: string
+    default: "World"
+
+output:
+  type: string
+
+expression:
+  let:
+    message:
+      concat:
+        - "$greeting"
+        - ", "
+        - "$name"
+        - "!"
+    in: "$message"

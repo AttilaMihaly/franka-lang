@@ -1,0 +1,27 @@
+# Output Section Example - Multiple Named Outputs
+# Demonstrates a program with multiple named output declarations
+
+program:
+  name: "Multiple Outputs"
+  description: "Program with multiple named outputs"
+
+input:
+  value:
+    type: number
+    default: 42
+
+output:
+  result:
+    type: string
+  is_positive:
+    type: boolean
+  doubled:
+    type: number
+
+expression:
+  let:
+    doubled_value:
+      concat:
+        - "Value doubled: "
+        - "$value"
+    in: "$doubled_value"

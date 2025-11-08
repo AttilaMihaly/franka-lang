@@ -26,6 +26,9 @@ syntax:
       - name: "input"
         description: "Input declarations with type definitions and optional default values"
         required: false
+      - name: "output"
+        description: "Output declarations with type definitions (no default values)"
+        required: false
       - name: "expression"
         description: "Expression to evaluate - can be a value, operation, or let binding"
         required: true
@@ -56,6 +59,42 @@ syntax:
           is_active:
             type: boolean
             default: true
+    
+    output_structure:
+      description: "Output declarations specify the type of values a program produces. Supports single unnamed output or multiple named outputs."
+      formats:
+        - name: "single_unnamed"
+          description: "Single output without a name mapping"
+          format: |
+            output:
+              type: string|number|boolean
+          example: |
+            output:
+              type: string
+        - name: "multiple_named"
+          description: "Multiple named outputs"
+          format: |
+            output:
+              output_name:
+                type: string|number|boolean
+          example: |
+            output:
+              result:
+                type: string
+              is_valid:
+                type: boolean
+              count:
+                type: number
+      properties:
+        - name: "type"
+          description: "Data type of the output (string, number, or boolean)"
+          required: true
+          values: ["string", "number", "boolean"]
+      notes:
+        - "Output declarations do not support default values"
+        - "Output declarations are for documentation purposes and do not affect program execution"
+        - "Use single unnamed format when there is only one output"
+        - "Use multiple named format when documenting multiple outputs"
 
   operations:
     let:
@@ -413,3 +452,59 @@ examples:
               then: "B+ Great!"
             - else: "Keep Trying!"
           in: "$grade"
+  
+  - name: "Single Output"
+    description: "Program with a single unnamed output declaration"
+    code: |
+      program:
+        name: "Single Output"
+        description: "Program with a single unnamed output"
+      
+      input:
+        greeting:
+          type: string
+          default: "Hello"
+        name:
+          type: string
+          default: "World"
+      
+      output:
+        type: string
+      
+      expression:
+        let:
+          message:
+            concat:
+              - "$greeting"
+              - ", "
+              - "$name"
+              - "!"
+          in: "$message"
+  
+  - name: "Multiple Outputs"
+    description: "Program with multiple named output declarations"
+    code: |
+      program:
+        name: "Multiple Outputs"
+        description: "Program with multiple named outputs"
+      
+      input:
+        value:
+          type: number
+          default: 42
+      
+      output:
+        result:
+          type: string
+        is_positive:
+          type: boolean
+        doubled:
+          type: number
+      
+      expression:
+        let:
+          doubled_value:
+            concat:
+              - "Value doubled: "
+              - "$value"
+          in: "$doubled_value"

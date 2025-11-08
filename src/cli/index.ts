@@ -75,6 +75,14 @@ function checkFile(filePath: string) {
     if (program.input) {
       console.log(`✓ Inputs: ${Object.keys(program.input).length}`);
     }
+    if (program.output) {
+      // Check if it's a single unnamed output or multiple named outputs
+      if ('type' in program.output) {
+        console.log(`✓ Output: 1 (type: ${program.output.type})`);
+      } else {
+        console.log(`✓ Outputs: ${Object.keys(program.output).length}`);
+      }
+    }
   } catch (error) {
     console.error('✗ Syntax error:');
     console.error(error instanceof Error ? error.message : String(error));

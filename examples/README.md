@@ -31,6 +31,18 @@ Demonstrates if-then chaining syntax for handling multiple conditional branches:
 - Final `else` clause for default fallback
 - Useful for implementing if-elif-else patterns
 
+### output-single.yaml
+Demonstrates a program with a single unnamed output declaration:
+- Uses `output: type: string` syntax
+- Shows how to document the expected output type
+- Combines input with default values and output declaration
+
+### output-multiple.yaml
+Demonstrates a program with multiple named output declarations:
+- Documents multiple outputs with descriptive names
+- Each output has its own type specification
+- Useful for programs that conceptually produce multiple results
+
 ## Running Examples
 
 To run any of these examples:
@@ -55,6 +67,14 @@ input:
   another_var:
     type: string
     default: value
+
+output:
+  type: string
+  # OR multiple named outputs:
+  # result:
+  #   type: string
+  # count:
+  #   type: number
 
 expression:
   # Simple value expression

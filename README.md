@@ -212,6 +212,14 @@ input:
     type: string
     default: "World"
 
+output:
+  type: string
+  # OR multiple named outputs:
+  # result:
+  #   type: string
+  # count:
+  #   type: number
+
 expression:
   # Use let/in for local bindings
   let:
@@ -223,6 +231,20 @@ expression:
         - "!"
     in: "$message"
 ```
+
+#### Input and Output Sections
+
+- **Input**: Declares typed input variables with optional default values
+  - Supports `string`, `number`, and `boolean` types
+  - Default values are optional
+  - Variables with defaults are available in the expression
+
+- **Output**: Declares the expected output type(s) from the program
+  - Supports `string`, `number`, and `boolean` types
+  - No default values allowed
+  - Can be a single unnamed output: `output: type: string`
+  - Or multiple named outputs: `output: result: type: string\n count: type: number`
+  - Output declarations are for documentation and validation purposes
 
 ### Supported Operations
 

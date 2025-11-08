@@ -497,4 +497,158 @@ describe('FrankaInterpreter', () => {
       );
     });
   });
+
+  describe('output section', () => {
+    it('should accept single unnamed output', () => {
+      const program = {
+        program: { name: 'Test' },
+        output: {
+          type: 'string' as const,
+        },
+        expression: 'Hello, World!',
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('Hello, World!');
+    });
+
+    it('should accept multiple named outputs', () => {
+      const program = {
+        program: { name: 'Test' },
+        output: {
+          foo: {
+            type: 'string' as const,
+          },
+          bar: {
+            type: 'boolean' as const,
+          },
+        },
+        expression: 'Hello, World!',
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('Hello, World!');
+    });
+
+    it('should validate single output type', () => {
+      const program = {
+        program: { name: 'Test' },
+        output: {
+          type: 'invalid' as any,
+        },
+        expression: 'Hello',
+      };
+
+      expect(() => interpreter.execute(program)).toThrow('Invalid output type: invalid');
+    });
+
+    it('should validate named output types', () => {
+      const program = {
+        program: { name: 'Test' },
+        output: {
+          result: {
+            type: 'invalid' as any,
+          },
+        },
+        expression: 'Hello',
+      };
+
+      expect(() => interpreter.execute(program)).toThrow(
+        'Invalid output type for "result": invalid'
+      );
+    });
+
+    it('should reject default values in single output', () => {
+      const program = {
+        program: { name: 'Test' },
+        output: {
+          type: 'string' as const,
+          default: 'test',
+        } as any,
+        expression: 'Hello',
+      };
+
+      expect(() => interpreter.execute(program)).toThrow(
+        'Single output definition should only contain "type" property'
+      );
+    });
+
+    it('should reject default values in named outputs', () => {
+      const program = {
+        program: { name: 'Test' },
+        output: {
+          result: {
+            type: 'string' as const,
+            default: 'test',
+          } as any,
+        },
+        expression: 'Hello',
+      };
+
+      expect(() => interpreter.execute(program)).toThrow(
+        'Output "result" cannot have a default value'
+      );
+    });
+
+    it('should require type property in named outputs', () => {
+      const program = {
+        program: { name: 'Test' },
+        output: {
+          result: {} as any,
+        },
+        expression: 'Hello',
+      };
+
+      expect(() => interpreter.execute(program)).toThrow(
+        'Output "result" must have a "type" property'
+      );
+    });
+
+    it('should accept number type in output', () => {
+      const program = {
+        program: { name: 'Test' },
+        output: {
+          type: 'number' as const,
+        },
+        expression: 42,
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(42);
+    });
+
+    it('should accept boolean type in output', () => {
+      const program = {
+        program: { name: 'Test' },
+        output: {
+          type: 'boolean' as const,
+        },
+        expression: true,
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(true);
+    });
+
+    it('should work with both input and output sections', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          greeting: {
+            type: 'string' as const,
+            default: 'Hello',
+          },
+        },
+        output: {
+          type: 'string' as const,
+        },
+        expression: {
+          concat: ['$greeting', ', World!'],
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('Hello, World!');
+    });
+  });
 });

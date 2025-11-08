@@ -14,12 +14,19 @@ export interface InputDefinition {
   default?: FrankaValue;
 }
 
+export interface OutputDefinition {
+  type: 'string' | 'number' | 'boolean';
+}
+
 export interface FrankaProgram {
   program: {
     name: string;
     description?: string;
   };
   input?: Record<string, InputDefinition>;
+  output?:
+    | { type: 'string' | 'number' | 'boolean' } // Single unnamed output
+    | Record<string, OutputDefinition>; // Multiple named outputs
   expression: FrankaExpression;
 }
 
@@ -45,7 +52,50 @@ export class FrankaInterpreter {
         }
       }
     }
+
+    // Validate output section if present
+    if (program.output) {
+      this.validateOutput(program.output);
+    }
+
     return this.evaluate(program.expression);
+  }
+
+  private validateOutput(
+    output: { type: 'string' | 'number' | 'boolean' } | Record<string, OutputDefinition>
+  ): void {
+    // Check if it's a single unnamed output
+    if ('type' in output && typeof output.type === 'string') {
+      const validTypes = ['string', 'number', 'boolean'];
+      if (!validTypes.includes(output.type)) {
+        throw new Error(`Invalid output type: ${output.type}`);
+      }
+      // Check that there are no other keys (like 'default')
+      const keys = Object.keys(output);
+      if (keys.length > 1 || (keys.length === 1 && keys[0] !== 'type')) {
+        throw new Error('Single output definition should only contain "type" property');
+      }
+    } else {
+      // Multiple named outputs - validate each one
+      for (const [name, definition] of Object.entries(output)) {
+        if (!definition || typeof definition !== 'object' || !('type' in definition)) {
+          throw new Error(`Output "${name}" must have a "type" property`);
+        }
+        const validTypes = ['string', 'number', 'boolean'];
+        if (!validTypes.includes(definition.type)) {
+          throw new Error(`Invalid output type for "${name}": ${definition.type}`);
+        }
+        // Check that output definitions don't have default values
+        if ('default' in definition) {
+          throw new Error(`Output "${name}" cannot have a default value`);
+        }
+        // Check that there are no unexpected keys
+        const keys = Object.keys(definition);
+        if (keys.length !== 1 || keys[0] !== 'type') {
+          throw new Error(`Output "${name}" should only contain "type" property`);
+        }
+      }
+    }
   }
 
   executeFile(filePath: string): FrankaValue {
