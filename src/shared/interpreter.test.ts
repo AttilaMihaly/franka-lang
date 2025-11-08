@@ -305,7 +305,9 @@ describe('FrankaInterpreter', () => {
         },
       };
 
-      expect(() => interpreter.execute(program)).toThrow('let operation requires an "in" expression');
+      expect(() => interpreter.execute(program)).toThrow(
+        'let operation requires an "in" expression'
+      );
     });
   });
 });
