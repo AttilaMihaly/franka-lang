@@ -314,9 +314,7 @@ export class FrankaInterpreter {
     }
 
     const lastKeys = Object.keys(lastItem);
-    return (
-      (lastKeys.includes('if') && lastKeys.includes('then')) || lastKeys.includes('else')
-    );
+    return (lastKeys.includes('if') && lastKeys.includes('then')) || lastKeys.includes('else');
   }
 
   private executeIfChain(chain: unknown[]): FrankaValue {
