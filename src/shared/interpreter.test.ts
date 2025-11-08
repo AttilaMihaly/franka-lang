@@ -34,6 +34,21 @@ describe('FrankaInterpreter', () => {
       const result = interpreter.execute(program);
       expect(result).toBe('Hello');
     });
+
+    it('should handle input without default value', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          message: {
+            type: 'string' as const,
+          },
+        },
+        expression: 'Hello, World!',
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('Hello, World!');
+    });
   });
 
   describe('let bindings', () => {
@@ -442,6 +457,20 @@ describe('FrankaInterpreter', () => {
       };
 
       expect(() => interpreter.execute(program)).toThrow('Undefined variable: undefined');
+    });
+
+    it('should throw error for referencing input without default value', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          message: {
+            type: 'string' as const,
+          },
+        },
+        expression: '$message',
+      };
+
+      expect(() => interpreter.execute(program)).toThrow('Undefined variable: message');
     });
 
     it('should throw error for unknown operation', () => {

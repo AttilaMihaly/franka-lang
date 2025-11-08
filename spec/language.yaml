@@ -29,6 +29,33 @@ syntax:
       - name: "expression"
         description: "Expression to evaluate - can be a value, operation, or let binding"
         required: true
+    
+    input_structure:
+      description: "Input declarations specify typed variables with optional default values"
+      format: |
+        input:
+          variable_name:
+            type: string|number|boolean
+            default: value  # optional
+      properties:
+        - name: "type"
+          description: "Data type of the input variable"
+          required: true
+          values: ["string", "number", "boolean"]
+        - name: "default"
+          description: "Default value for the input variable (must match specified type)"
+          required: false
+      example: |
+        input:
+          username:
+            type: string
+            default: "guest"
+          age:
+            type: number
+            default: 18
+          is_active:
+            type: boolean
+            default: true
 
   operations:
     let:
