@@ -204,9 +204,13 @@ program:
   name: "Program Name"
   description: "Program description"
 
-variables:
-  greeting: "Hello"
-  name: "World"
+input:
+  greeting:
+    type: string
+    default: "Hello"
+  name:
+    type: string
+    default: "World"
 
 expression:
   # Use let/in for local bindings

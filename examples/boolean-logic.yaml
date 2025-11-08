@@ -5,9 +5,13 @@ program:
   name: "Boolean Logic"
   description: "Demonstrate boolean operations"
 
-variables:
-  is_valid: true
-  is_admin: false
+input:
+  is_valid:
+    type: boolean
+    default: true
+  is_admin:
+    type: boolean
+    default: false
 
 expression:
   let:

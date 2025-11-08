@@ -22,12 +22,32 @@ describe('FrankaInterpreter', () => {
     it('should evaluate a variable reference', () => {
       const program = {
         program: { name: 'Test' },
-        variables: { message: 'Hello' },
+        input: {
+          message: {
+            type: 'string' as const,
+            default: 'Hello',
+          },
+        },
         expression: '$message',
       };
 
       const result = interpreter.execute(program);
       expect(result).toBe('Hello');
+    });
+
+    it('should handle input without default value', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          message: {
+            type: 'string' as const,
+          },
+        },
+        expression: 'Hello, World!',
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('Hello, World!');
     });
   });
 
@@ -89,7 +109,16 @@ describe('FrankaInterpreter', () => {
     it('should concatenate strings', () => {
       const program = {
         program: { name: 'Test' },
-        variables: { greeting: 'Hello', name: 'World' },
+        input: {
+          greeting: {
+            type: 'string' as const,
+            default: 'Hello',
+          },
+          name: {
+            type: 'string' as const,
+            default: 'World',
+          },
+        },
         expression: {
           concat: ['$greeting', ', ', '$name', '!'],
         },
@@ -188,7 +217,12 @@ describe('FrankaInterpreter', () => {
     it('should perform equals operation', () => {
       const program = {
         program: { name: 'Test' },
-        variables: { name: 'alice' },
+        input: {
+          name: {
+            type: 'string' as const,
+            default: 'alice',
+          },
+        },
         expression: {
           equals: { left: '$name', right: 'alice' },
         },
@@ -236,7 +270,16 @@ describe('FrankaInterpreter', () => {
     it('should execute nested if with complex condition (legacy)', () => {
       const program = {
         program: { name: 'Test' },
-        variables: { username: 'alice', expected: 'alice' },
+        input: {
+          username: {
+            type: 'string' as const,
+            default: 'alice',
+          },
+          expected: {
+            type: 'string' as const,
+            default: 'alice',
+          },
+        },
         expression: {
           if: {
             condition: { equals: { left: '$username', right: '$expected' } },
@@ -282,7 +325,16 @@ describe('FrankaInterpreter', () => {
     it('should execute flat if with complex condition', () => {
       const program = {
         program: { name: 'Test' },
-        variables: { username: 'alice', expected: 'alice' },
+        input: {
+          username: {
+            type: 'string' as const,
+            default: 'alice',
+          },
+          expected: {
+            type: 'string' as const,
+            default: 'alice',
+          },
+        },
         expression: {
           if: { equals: { left: '$username', right: '$expected' } },
           then: 'Match',
@@ -340,7 +392,12 @@ describe('FrankaInterpreter', () => {
     it('should execute if-then chain with complex conditions', () => {
       const program = {
         program: { name: 'Test' },
-        variables: { score: 85 },
+        input: {
+          score: {
+            type: 'number' as const,
+            default: 85,
+          },
+        },
         expression: [
           { if: { equals: { left: '$score', right: 100 } }, then: 'Perfect' },
           { if: { equals: { left: '$score', right: 85 } }, then: 'Great' },
@@ -400,6 +457,20 @@ describe('FrankaInterpreter', () => {
       };
 
       expect(() => interpreter.execute(program)).toThrow('Undefined variable: undefined');
+    });
+
+    it('should throw error for referencing input without default value', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          message: {
+            type: 'string' as const,
+          },
+        },
+        expression: '$message',
+      };
+
+      expect(() => interpreter.execute(program)).toThrow('Undefined variable: message');
     });
 
     it('should throw error for unknown operation', () => {

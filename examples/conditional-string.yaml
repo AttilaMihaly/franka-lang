@@ -5,9 +5,13 @@ program:
   name: "Conditional String Processing"
   description: "Demonstrate combining boolean and string operations"
 
-variables:
-  username: "alice"
-  expected: "alice"
+input:
+  username:
+    type: string
+    default: "alice"
+  expected:
+    type: string
+    default: "alice"
 
 expression:
   let:

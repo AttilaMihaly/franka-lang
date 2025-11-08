@@ -23,12 +23,39 @@ syntax:
       - name: "program"
         description: "Root key containing program metadata"
         required: true
-      - name: "variables"
-        description: "Initial variable declarations (optional)"
+      - name: "input"
+        description: "Input declarations with type definitions and optional default values"
         required: false
       - name: "expression"
         description: "Expression to evaluate - can be a value, operation, or let binding"
         required: true
+    
+    input_structure:
+      description: "Input declarations specify typed variables with optional default values"
+      format: |
+        input:
+          variable_name:
+            type: string|number|boolean
+            default: value  # optional
+      properties:
+        - name: "type"
+          description: "Data type of the input variable"
+          required: true
+          values: ["string", "number", "boolean"]
+        - name: "default"
+          description: "Default value for the input variable (must match specified type)"
+          required: false
+      example: |
+        input:
+          username:
+            type: string
+            default: "guest"
+          age:
+            type: number
+            default: 18
+          is_active:
+            type: boolean
+            default: true
 
   operations:
     let:
@@ -284,9 +311,13 @@ examples:
       program:
         name: "String Operations"
       
-      variables:
-        greeting: "Hello"
-        name: "World"
+      input:
+        greeting:
+          type: string
+          default: "Hello"
+        name:
+          type: string
+          default: "World"
       
       expression:
         let:
@@ -306,9 +337,13 @@ examples:
       program:
         name: "Boolean Logic"
       
-      variables:
-        is_valid: true
-        is_admin: false
+      input:
+        is_valid:
+          type: boolean
+          default: true
+        is_admin:
+          type: boolean
+          default: false
       
       expression:
         let:
@@ -328,9 +363,13 @@ examples:
       program:
         name: "Conditional String Processing"
       
-      variables:
-        username: "alice"
-        expected: "alice"
+      input:
+        username:
+          type: string
+          default: "alice"
+        expected:
+          type: string
+          default: "alice"
       
       expression:
         let:
@@ -354,8 +393,10 @@ examples:
       program:
         name: "If-Then Chaining"
       
-      variables:
-        score: 85
+      input:
+        score:
+          type: number
+          default: 85
       
       expression:
         let:

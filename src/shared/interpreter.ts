@@ -9,12 +9,17 @@ export type FrankaExpression =
   | { [key: string]: unknown } // Operations and let bindings
   | FrankaExpression[]; // Arrays in concat, and, or
 
+export interface InputDefinition {
+  type: 'string' | 'number' | 'boolean';
+  default?: FrankaValue;
+}
+
 export interface FrankaProgram {
   program: {
     name: string;
     description?: string;
   };
-  variables?: Record<string, FrankaValue>;
+  input?: Record<string, InputDefinition>;
   expression: FrankaExpression;
 }
 
@@ -31,7 +36,15 @@ export class FrankaInterpreter {
   }
 
   execute(program: FrankaProgram): FrankaValue {
-    this.variables = program.variables ? { ...program.variables } : {};
+    // Extract default values from input definitions
+    this.variables = {};
+    if (program.input) {
+      for (const [name, definition] of Object.entries(program.input)) {
+        if (definition.default !== undefined) {
+          this.variables[name] = definition.default;
+        }
+      }
+    }
     return this.evaluate(program.expression);
   }
 

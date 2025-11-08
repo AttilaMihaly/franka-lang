@@ -5,9 +5,13 @@ program:
   name: "String Operations"
   description: "Demonstrate string concatenation and transformation"
 
-variables:
-  greeting: "Hello"
-  name: "World"
+input:
+  greeting:
+    type: string
+    default: "Hello"
+  name:
+    type: string
+    default: "World"
 
 expression:
   let:

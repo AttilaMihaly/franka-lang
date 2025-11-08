@@ -48,9 +48,13 @@ program:
   name: "Program Name"
   description: "Program description"
 
-variables:
-  variable_name: value
-  another_var: value
+input:
+  variable_name:
+    type: string
+    default: value
+  another_var:
+    type: string
+    default: value
 
 expression:
   # Simple value expression

@@ -72,8 +72,8 @@ function checkFile(filePath: string) {
       console.log(`✓ Description: ${program.program.description}`);
     }
     console.log(`✓ Expression: ${program.expression ? 'present' : 'missing'}`);
-    if (program.variables) {
-      console.log(`✓ Variables: ${Object.keys(program.variables).length}`);
+    if (program.input) {
+      console.log(`✓ Inputs: ${Object.keys(program.input).length}`);
     }
   } catch (error) {
     console.error('✗ Syntax error:');

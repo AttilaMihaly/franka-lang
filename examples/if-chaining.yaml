@@ -5,8 +5,10 @@ program:
   name: "If-Then Chaining"
   description: "Demonstrate chaining conditional expressions"
 
-variables:
-  score: 85
+input:
+  score:
+    type: number
+    default: 85
 
 expression:
   let:
