@@ -97,6 +97,35 @@ syntax:
         - "Use multiple named format when documenting multiple outputs"
 
   operations:
+    input_output:
+      - name: "get"
+        description: "Get an input variable value by name"
+        parameters:
+          - name: "variable_name"
+            type: "string"
+            description: "Name of the input variable to retrieve"
+        example: |
+          get: username
+        notes:
+          - "Replaces the older $varname syntax for variable references"
+          - "Both get: and $varname syntax are supported for backward compatibility"
+      
+      - name: "set"
+        description: "Set one or more named output values. Can be used at any node of an if/else tree."
+        parameters:
+          - name: "outputs"
+            type: "mapping"
+            description: "Output names as keys, values as expressions to evaluate"
+        example: |
+          set:
+            result: "Success"
+            count: 42
+        notes:
+          - "Used with multiple named outputs defined in the output section"
+          - "Can set multiple outputs in a single set operation"
+          - "When set is used, the program returns an object with output names and values"
+          - "Can be placed in if/then/else branches to set outputs conditionally"
+    
     let:
       - name: "let"
         description: "Define local variable bindings with lexical scoping"
@@ -113,10 +142,11 @@ syntax:
             y: 10
             sum:
               concat:
-                - "$x"
+                - get: x
                 - " + "
-                - "$y"
-            in: "$sum"
+                - get: y
+            in:
+              get: sum
     
     string:
       - name: "concat"
@@ -297,8 +327,30 @@ semantics:
     description: "Expressions are evaluated eagerly. Let bindings are evaluated sequentially, allowing later bindings to reference earlier ones."
   
   variables:
-    reference_syntax: "$variable_name"
-    description: "Variables are referenced using $ prefix"
+    reference_syntax:
+      - syntax: "get: variable_name"
+        description: "Preferred method to reference input variables using get operation"
+        example: "get: username"
+      - syntax: "$variable_name"
+        description: "Legacy syntax for variable references (still supported for backward compatibility)"
+        example: "$username"
+    notes:
+      - "The 'get' operation is the recommended way to reference input variables"
+      - "Both syntaxes are supported, allowing for gradual migration"
+      - "Variables can be input variables (with or without defaults) or let bindings"
+  
+  outputs:
+    single_output:
+      description: "When no 'set' operation is used, the program returns a single value from the expression"
+      example: "expression: \"Hello, World!\""
+    multiple_outputs:
+      description: "When 'set' operation is used, the program returns an object with named output values"
+      syntax: "set: { outputname1: value1, outputname2: value2 }"
+      notes:
+        - "Named outputs must be declared in the output section"
+        - "Set operations can be placed at any node of an if/else tree"
+        - "Multiple outputs can be set in a single set operation"
+        - "When outputs are set, the return value is an object with output names as keys"
 
 tooling:
   cli:
@@ -482,7 +534,7 @@ examples:
           in: "$message"
   
   - name: "Multiple Outputs"
-    description: "Program with multiple named output declarations"
+    description: "Program with multiple named output declarations (legacy $varname syntax)"
     code: |
       program:
         name: "Multiple Outputs"
@@ -508,3 +560,88 @@ examples:
               - "Value doubled: "
               - "$value"
           in: "$doubled_value"
+  
+  - name: "Get and Set Operations"
+    description: "Demonstrate the new get/set syntax for input/output handling"
+    code: |
+      program:
+        name: "Get and Set Operations"
+        description: "Using get for inputs and set for outputs"
+      
+      input:
+        username:
+          type: string
+          default: "alice"
+        age:
+          type: number
+          default: 25
+      
+      output:
+        greeting:
+          type: string
+        category:
+          type: string
+      
+      expression:
+        let:
+          user:
+            get: username
+          user_age:
+            get: age
+          in:
+            set:
+              greeting:
+                concat:
+                  - "Hello, "
+                  - get: username
+                  - "!"
+              category:
+                if:
+                  equals:
+                    left:
+                      get: age
+                    right: 25
+                then: "Young Adult"
+                else: "Other"
+  
+  - name: "Conditional Outputs"
+    description: "Setting different outputs based on conditions using get/set"
+    code: |
+      program:
+        name: "Conditional Outputs"
+        description: "Set outputs conditionally at different if/else branches"
+      
+      input:
+        score:
+          type: number
+          default: 85
+      
+      output:
+        grade:
+          type: string
+        passed:
+          type: boolean
+      
+      expression:
+        - if:
+            equals:
+              left:
+                get: score
+              right: 100
+          then:
+            set:
+              grade: "A+"
+              passed: true
+        - if:
+            equals:
+              left:
+                get: score
+              right: 85
+          then:
+            set:
+              grade: "B+"
+              passed: true
+        - else:
+            set:
+              grade: "F"
+              passed: false
