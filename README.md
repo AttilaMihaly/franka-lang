@@ -53,7 +53,7 @@ node dist/cli/index.js --help
 # Available commands
 npm run cli -- version          # Show version
 npm run cli -- run <file>       # Run a Franka program
-npm run cli -- check <file>     # Check syntax
+npm run cli -- check <file>     # Check syntax and run tests
 npm run cli -- repl             # Start REPL (coming soon)
 ```
 
@@ -69,9 +69,26 @@ npm run cli -- run examples/string-operations.yaml
 # Run boolean logic example
 npm run cli -- run examples/boolean-logic.yaml
 
-# Check syntax of a program
+# Check syntax and run tests (if spec file exists)
 npm run cli -- check examples/hello.yaml
 ```
+
+#### Program Testing with Spec Files
+
+Franka supports automatic testing through spec files. Create a file named `program_name.spec.yaml` alongside your program:
+
+```yaml
+tests:
+  - description: "Test with default inputs"
+    expectedOutputs: "Expected result"
+    
+  - description: "Test with custom inputs"
+    inputs:
+      variable: "custom value"
+    expectedOutputs: "Different result"
+```
+
+The `check` command automatically discovers and runs spec files, reporting test results.
 
 ### MCP Server
 

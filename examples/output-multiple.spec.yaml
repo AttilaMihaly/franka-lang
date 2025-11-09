@@ -1,0 +1,30 @@
+tests:
+  - description: "Default value 42"
+    expectedOutputs:
+      result: "The value is 42"
+      matches_default: true
+      original: 42
+
+  - description: "Custom value matching default"
+    inputs:
+      value: 42
+    expectedOutputs:
+      result: "The value is 42"
+      matches_default: true
+      original: 42
+
+  - description: "Custom value not matching default"
+    inputs:
+      value: 100
+    expectedOutputs:
+      result: "The value is 100"
+      matches_default: false
+      original: 100
+
+  - description: "Zero value"
+    inputs:
+      value: 0
+    expectedOutputs:
+      result: "The value is 0"
+      matches_default: false
+      original: 0

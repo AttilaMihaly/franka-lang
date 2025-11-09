@@ -7,11 +7,15 @@ This directory contains example Franka programs demonstrating the YAML-based syn
 ### hello.yaml
 A simple "Hello World" program that demonstrates the basic program structure and returns a greeting value.
 
+**Spec file:** `hello.spec.yaml` - Contains 2 test cases validating the default output.
+
 ### string-operations.yaml
 Demonstrates string manipulation operations using let/in bindings including:
 - String concatenation (`concat`)
 - Uppercase conversion (`uppercase`)
 - Lowercase conversion (`lowercase`)
+
+**Spec file:** `string-operations.spec.yaml` - Contains 4 test cases covering default inputs, custom inputs, edge cases with empty strings, and single character strings.
 
 ### boolean-logic.yaml
 Demonstrates boolean operations using let/in bindings including:
@@ -20,10 +24,14 @@ Demonstrates boolean operations using let/in bindings including:
 - Logical NOT (`not`)
 - Conditional execution (`if`)
 
+**Spec file:** `boolean-logic.spec.yaml` - Contains 4 test cases testing different combinations of boolean inputs (valid/invalid, admin/non-admin).
+
 ### conditional-string.yaml
 Combines boolean and string operations with nested let/in bindings to show how they work together:
 - Equality comparison (`equals`)
 - Conditional logic with string manipulation
+
+**Spec file:** `conditional-string.spec.yaml` - Contains 3 test cases for matching and non-matching username scenarios.
 
 ### if-chaining.yaml
 Demonstrates if-then chaining syntax for handling multiple conditional branches:
@@ -63,6 +71,79 @@ To run any of these examples:
 ```bash
 npm run cli -- run examples/hello.yaml
 ```
+
+To check syntax and run tests (if a spec file exists):
+
+```bash
+npm run cli -- check examples/hello.yaml
+```
+
+## Program Testing with Spec Files
+
+Franka programs can have associated spec files that define test cases to validate program behavior. Spec files follow the naming convention `program_name.spec.yaml`.
+
+### Spec File Structure
+
+A spec file contains a list of test cases:
+
+```yaml
+tests:
+  - description: "Test case description (optional)"
+    inputs:
+      variable_name: value
+      another_var: value
+    expectedOutputs: "Expected result"
+    
+  - description: "Another test case"
+    inputs:
+      variable_name: different_value
+    expectedOutputs: "Different result"
+```
+
+**Key elements:**
+- `tests`: Array of test cases (required)
+- `description`: Human-readable description of the test (optional)
+- `inputs`: Object mapping input variable names to test values (optional)
+- `expectedOutputs`: The expected output from the program (required)
+  - For single output programs: a value (string, number, boolean)
+  - For multiple output programs: an object with output names and values
+
+### Running Tests
+
+When you run the `check` command, it automatically discovers and runs spec files:
+
+```bash
+# Check syntax and run tests
+npm run cli -- check examples/hello.yaml
+
+# Output:
+# Checking Franka program: examples/hello.yaml
+# ✓ Syntax is valid
+# ✓ Program name: Hello World
+# ...
+# --- Running Tests ---
+# Found spec file: examples/hello.spec.yaml
+# ✓ Test 1: Default greeting
+# ✓ Test 2: Test without inputs should use defaults
+# Test Results: 2 passed, 0 failed
+```
+
+If tests fail, detailed error messages are shown:
+
+```bash
+# ✗ Test 1: This test should fail
+#   Error: Output mismatch
+#   Expected: "Wrong output"
+#   Actual: "Hello, Franka!"
+```
+
+### Example Spec Files
+
+Check out the existing spec files in this directory:
+- `hello.spec.yaml` - Basic test cases
+- `string-operations.spec.yaml` - Multiple test cases with different inputs
+- `boolean-logic.spec.yaml` - Boolean input combinations
+- `conditional-string.spec.yaml` - Conditional logic tests
 
 ## Syntax Overview
 
