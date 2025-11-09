@@ -15,23 +15,27 @@ expression:
     grade:
       - if:
           equals:
-            left: "$score"
+            left:
+              get: score
             right: 100
         then: "A+ Perfect Score!"
       - if:
           and:
-            - { equals: { left: "$score", right: 90 } }
+            - { equals: { left: { get: score }, right: 90 } }
             - true
         then: "A Excellent!"
       - if:
           equals:
-            left: "$score"
+            left:
+              get: score
             right: 85
         then: "B+ Great Job!"
       - if:
           equals:
-            left: "$score"
+            left:
+              get: score
             right: 80
         then: "B Good Work!"
       - else: "Keep Trying!"
-  in: "$grade"
+  in:
+    get: grade

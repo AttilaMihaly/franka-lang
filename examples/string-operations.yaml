@@ -17,18 +17,20 @@ expression:
   let:
     message:
       concat:
-        - "$greeting"
+        - get: greeting
         - ", "
-        - "$name"
+        - get: name
         - "!"
     upper_message:
-      uppercase: "$message"
+      uppercase:
+        get: message
     lower_message:
-      lowercase: "$message"
+      lowercase:
+        get: message
   in:
     concat:
-      - "$message"
+      - get: message
       - "\n"
-      - "$upper_message"
+      - get: upper_message
       - "\n"
-      - "$lower_message"
+      - get: lower_message

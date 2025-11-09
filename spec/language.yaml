@@ -107,8 +107,7 @@ syntax:
         example: |
           get: username
         notes:
-          - "Replaces the older $varname syntax for variable references"
-          - "Both get: and $varname syntax are supported for backward compatibility"
+          - "Use this syntax to reference input variables and let bindings"
       
       - name: "set"
         description: "Set one or more named output values. Can be used at any node of an if/else tree."
@@ -136,14 +135,16 @@ syntax:
               let:
                 x: 5
                 y: 10
-                in: "$x"
+                in:
+                  get: x
           - name: "flat"
             description: "Flat syntax with let and in at the same indentation level (recommended)"
             example: |
               let:
                 x: 5
                 y: 10
-              in: "$x"
+              in:
+                get: x
         parameters:
           - name: "bindings"
             type: "mapping"
@@ -173,7 +174,7 @@ syntax:
         example: |
           concat:
             - "Hello, "
-            - "$name"
+            - get: name
       
       - name: "length"
         description: "Get string length"
@@ -182,7 +183,8 @@ syntax:
             type: "string"
             description: "String value or variable reference"
         example: |
-          length: "$text"
+          length:
+            get: text
       
       - name: "substring"
         description: "Extract substring"
@@ -198,7 +200,8 @@ syntax:
             description: "Ending index (optional)"
         example: |
           substring:
-            value: "$text"
+            value:
+              get: text
             start: 0
             end: 5
       
@@ -209,7 +212,8 @@ syntax:
             type: "string"
             description: "String value or variable reference"
         example: |
-          uppercase: "$text"
+          uppercase:
+            get: text
       
       - name: "lowercase"
         description: "Convert string to lowercase"
@@ -218,7 +222,8 @@ syntax:
             type: "string"
             description: "String value or variable reference"
         example: |
-          lowercase: "$text"
+          lowercase:
+            get: text
     
     boolean:
       - name: "and"
@@ -230,7 +235,7 @@ syntax:
         example: |
           and:
             - true
-            - "$condition"
+            - get: condition
       
       - name: "or"
         description: "Logical OR operation"
@@ -241,7 +246,7 @@ syntax:
         example: |
           or:
             - false
-            - "$condition"
+            - get: condition
       
       - name: "not"
         description: "Logical NOT operation"
@@ -250,7 +255,8 @@ syntax:
             type: "boolean"
             description: "Boolean value or variable reference"
         example: |
-          not: "$condition"
+          not:
+            get: condition
       
       - name: "equals"
         description: "Equality comparison"
@@ -263,8 +269,10 @@ syntax:
             description: "Right operand"
         example: |
           equals:
-            left: "$value1"
-            right: "$value2"
+            left:
+              get: value1
+            right:
+              get: value2
     
     control:
       - name: "if"
@@ -276,7 +284,8 @@ syntax:
               if:
                 condition:
                   equals:
-                    left: "$name"
+                    left:
+                      get: name
                     right: "Alice"
                 then: "Hello Alice!"
                 else: "Hello stranger!"
@@ -285,7 +294,8 @@ syntax:
             example: |
               if:
                 equals:
-                  left: "$name"
+                  left:
+                    get: name
                   right: "Alice"
               then: "Hello Alice!"
               else: "Hello stranger!"
@@ -294,12 +304,14 @@ syntax:
             example: |
               - if:
                   equals:
-                    left: "$score"
+                    left:
+                      get: score
                     right: 100
                 then: "Perfect!"
               - if:
                   equals:
-                    left: "$score"
+                    left:
+                      get: score
                     right: 90
                 then: "Excellent!"
               - else: "Good effort!"
@@ -344,14 +356,10 @@ semantics:
   variables:
     reference_syntax:
       - syntax: "get: variable_name"
-        description: "Preferred method to reference input variables using get operation"
+        description: "Method to reference input variables using get operation"
         example: "get: username"
-      - syntax: "$variable_name"
-        description: "Legacy syntax for variable references (still supported for backward compatibility)"
-        example: "$username"
     notes:
-      - "The 'get' operation is the recommended way to reference input variables"
-      - "Both syntaxes are supported, allowing for gradual migration"
+      - "Use the 'get' operation to reference input variables and let bindings"
       - "Variables can be input variables (with or without defaults) or let bindings"
   
   outputs:
@@ -429,13 +437,15 @@ examples:
         let:
           message:
             concat:
-              - "$greeting"
+              - get: greeting
               - ", "
-              - "$name"
+              - get: name
               - "!"
           upper_message:
-            uppercase: "$message"
-        in: "$upper_message"
+            uppercase:
+              get: message
+        in:
+          get: upper_message
   
   - name: "Boolean Logic"
     description: "Demonstrate boolean operations"
@@ -455,13 +465,15 @@ examples:
         let:
           can_access:
             and:
-              - "$is_valid"
-              - "$is_admin"
+              - get: is_valid
+              - get: is_admin
           result:
-            if: "$can_access"
+            if:
+              get: can_access
             then: "Access granted"
             else: "Access denied"
-        in: "$result"
+        in:
+          get: result
   
   - name: "Conditional String Processing"
     description: "Combine boolean and string operations"
@@ -481,17 +493,21 @@ examples:
         let:
           is_match:
             equals:
-              left: "$username"
-              right: "$expected"
+              left:
+                get: username
+              right:
+                get: expected
           greeting:
-            if: "$is_match"
+            if:
+              get: is_match
             then:
               concat:
                 - "Welcome, "
-                - "$username"
+                - get: username
                 - "!"
             else: "Unknown user"
-        in: "$greeting"
+        in:
+          get: greeting
 
   - name: "If-Then Chaining"
     description: "Chain multiple conditional expressions"
@@ -509,16 +525,19 @@ examples:
           grade:
             - if:
                 equals:
-                  left: "$score"
+                  left:
+                    get: score
                   right: 100
               then: "A+ Perfect!"
             - if:
                 equals:
-                  left: "$score"
+                  left:
+                    get: score
                   right: 85
               then: "B+ Great!"
             - else: "Keep Trying!"
-        in: "$grade"
+        in:
+          get: grade
   
   - name: "Single Output"
     description: "Program with a single unnamed output declaration"
@@ -542,14 +561,15 @@ examples:
         let:
           message:
             concat:
-              - "$greeting"
+              - get: greeting
               - ", "
-              - "$name"
+              - get: name
               - "!"
-        in: "$message"
+        in:
+          get: message
   
   - name: "Multiple Outputs"
-    description: "Program with multiple named output declarations (legacy $varname syntax)"
+    description: "Program with multiple named output declarations"
     code: |
       program:
         name: "Multiple Outputs"
@@ -573,8 +593,9 @@ examples:
           doubled_value:
             concat:
               - "Value doubled: "
-              - "$value"
-        in: "$doubled_value"
+              - get: value
+        in:
+          get: doubled_value
   
   - name: "Get and Set Operations"
     description: "Demonstrate the new get/set syntax for input/output handling"

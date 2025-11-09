@@ -117,15 +117,6 @@ export class FrankaInterpreter {
       return expression;
     }
 
-    // Handle variable references
-    if (typeof expression === 'string' && expression.startsWith('$')) {
-      const varName = expression.substring(1);
-      if (!(varName in this.variables)) {
-        throw new Error(`Undefined variable: ${varName}`);
-      }
-      return this.variables[varName];
-    }
-
     // Handle primitive types (string, number, boolean)
     if (typeof expression !== 'object') {
       return expression as FrankaValue;

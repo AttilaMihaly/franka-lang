@@ -17,30 +17,34 @@ expression:
   let:
     can_access:
       and:
-        - "$is_valid"
-        - "$is_admin"
+        - get: is_valid
+        - get: is_admin
     access_message:
-      if: "$can_access"
+      if:
+        get: can_access
       then: "Access granted"
       else: "Access denied"
     can_view:
       or:
-        - "$is_valid"
-        - "$is_admin"
+        - get: is_valid
+        - get: is_admin
     view_message:
-      if: "$can_view"
+      if:
+        get: can_view
       then: "You can view the content"
       else: "You cannot view the content"
     is_guest:
-      not: "$is_admin"
+      not:
+        get: is_admin
     guest_message:
-      if: "$is_guest"
+      if:
+        get: is_guest
       then: "Welcome, guest!"
       else: null
   in:
     concat:
-      - "$access_message"
+      - get: access_message
       - "\n"
-      - "$view_message"
+      - get: view_message
       - "\n"
-      - "$guest_message"
+      - get: guest_message

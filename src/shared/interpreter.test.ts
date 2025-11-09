@@ -28,7 +28,7 @@ describe('FrankaInterpreter', () => {
             default: 'Hello',
           },
         },
-        expression: '$message',
+        expression: { get: 'message' },
       };
 
       const result = interpreter.execute(program);
@@ -58,7 +58,7 @@ describe('FrankaInterpreter', () => {
         expression: {
           let: {
             x: 5,
-            in: '$x',
+            in: { get: 'x' },
           },
         },
       };
@@ -73,8 +73,8 @@ describe('FrankaInterpreter', () => {
         expression: {
           let: {
             x: 5,
-            y: { concat: ['Value is ', '$x'] },
-            in: '$y',
+            y: { concat: ['Value is ', { get: 'x' }] },
+            in: { get: 'y' },
           },
         },
       };
@@ -92,10 +92,10 @@ describe('FrankaInterpreter', () => {
             result: {
               let: {
                 y: 10,
-                in: '$y',
+                in: { get: 'y' },
               },
             },
-            in: '$result',
+            in: { get: 'result' },
           },
         },
       };
@@ -111,7 +111,7 @@ describe('FrankaInterpreter', () => {
           let: {
             x: 5,
           },
-          in: '$x',
+          in: { get: 'x' },
         },
       };
 
@@ -125,9 +125,9 @@ describe('FrankaInterpreter', () => {
         expression: {
           let: {
             x: 5,
-            y: { concat: ['Value is ', '$x'] },
+            y: { concat: ['Value is ', { get: 'x' }] },
           },
-          in: '$y',
+          in: { get: 'y' },
         },
       };
 
@@ -145,10 +145,10 @@ describe('FrankaInterpreter', () => {
               let: {
                 y: 10,
               },
-              in: '$y',
+              in: { get: 'y' },
             },
           },
-          in: '$result',
+          in: { get: 'result' },
         },
       };
 
@@ -172,7 +172,7 @@ describe('FrankaInterpreter', () => {
           },
         },
         expression: {
-          concat: ['$greeting', ', ', '$name', '!'],
+          concat: [{ get: 'greeting' }, ', ', { get: 'name' }, '!'],
         },
       };
 
@@ -276,7 +276,7 @@ describe('FrankaInterpreter', () => {
           },
         },
         expression: {
-          equals: { left: '$name', right: 'alice' },
+          equals: { left: { get: 'name' }, right: 'alice' },
         },
       };
 
@@ -334,7 +334,9 @@ describe('FrankaInterpreter', () => {
         },
         expression: {
           if: {
-            condition: { equals: { left: '$username', right: '$expected' } },
+            condition: {
+              equals: { left: { get: 'username' }, right: { get: 'expected' } },
+            },
             then: 'Match',
             else: 'No match',
           },
@@ -388,7 +390,7 @@ describe('FrankaInterpreter', () => {
           },
         },
         expression: {
-          if: { equals: { left: '$username', right: '$expected' } },
+          if: { equals: { left: { get: 'username' }, right: { get: 'expected' } } },
           then: 'Match',
           else: 'No match',
         },
@@ -451,8 +453,8 @@ describe('FrankaInterpreter', () => {
           },
         },
         expression: [
-          { if: { equals: { left: '$score', right: 100 } }, then: 'Perfect' },
-          { if: { equals: { left: '$score', right: 85 } }, then: 'Great' },
+          { if: { equals: { left: { get: 'score' }, right: 100 } }, then: 'Perfect' },
+          { if: { equals: { left: { get: 'score' }, right: 85 } }, then: 'Great' },
           { else: 'Good' },
         ],
       };
@@ -505,7 +507,7 @@ describe('FrankaInterpreter', () => {
     it('should throw error for undefined variable', () => {
       const program = {
         program: { name: 'Test' },
-        expression: '$undefined',
+        expression: { get: 'undefined' },
       };
 
       expect(() => interpreter.execute(program)).toThrow('Undefined variable: undefined');
@@ -519,7 +521,7 @@ describe('FrankaInterpreter', () => {
             type: 'string' as const,
           },
         },
-        expression: '$message',
+        expression: { get: 'message' },
       };
 
       expect(() => interpreter.execute(program)).toThrow('Undefined variable: message');
@@ -695,7 +697,7 @@ describe('FrankaInterpreter', () => {
           type: 'string' as const,
         },
         expression: {
-          concat: ['$greeting', ', World!'],
+          concat: [{ get: 'greeting' }, ', World!'],
         },
       };
 

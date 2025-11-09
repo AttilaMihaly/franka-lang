@@ -17,23 +17,28 @@ expression:
   let:
     is_match:
       equals:
-        left: "$username"
-        right: "$expected"
+        left:
+          get: username
+        right:
+          get: expected
     result:
-      if: "$is_match"
+      if:
+        get: is_match
       then:
         let:
           greeting:
             concat:
               - "Welcome, "
-              - "$username"
+              - get: username
               - "!"
           upper_username:
-            uppercase: "$username"
+            uppercase:
+              get: username
         in:
           concat:
-            - "$greeting"
+            - get: greeting
             - "\n"
-            - "$upper_username"
+            - get: upper_username
       else: "Unknown user"
-  in: "$result"
+  in:
+    get: result

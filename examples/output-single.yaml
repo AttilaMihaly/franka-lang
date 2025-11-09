@@ -20,8 +20,9 @@ expression:
   let:
     message:
       concat:
-        - "$greeting"
+        - get: greeting
         - ", "
-        - "$name"
+        - get: name
         - "!"
-  in: "$message"
+  in:
+    get: message

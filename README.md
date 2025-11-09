@@ -16,9 +16,8 @@ Franka is a modern programming language with a self-documenting specification de
 - **Boolean Operations**: and, or, not, equals
 - **Control Flow**: if/then/else conditional expressions
 - **Input/Output Operations**: 
-  - `get: varname` - Reference input variables (recommended)
+  - `get: varname` - Reference input variables
   - `set: { output: value }` - Set named outputs
-  - Legacy `$variable_name` syntax still supported for backward compatibility
 - **CLI Tool**: Command-line interface for running and checking Franka programs
 - **MCP Server**: Model Context Protocol server for AI integration
 - **Web API Server**: RESTful API for accessing language specification
@@ -236,8 +235,6 @@ expression:
     get: message
 ```
 
-**Note**: The legacy `$varname` syntax (e.g., `"$greeting"`) is still supported for backward compatibility, but the new `get: varname` syntax is recommended.
-
 For programs with multiple named outputs, use the `set` operation:
 
 ```yaml
@@ -288,10 +285,8 @@ expression:
   - Bindings can reference earlier bindings in the same let block
 
 #### Input/Output Operations
-- `get: varname`: Get an input variable value by name (recommended)
-  - Replaces the older `$varname` syntax
+- `get: varname`: Get an input variable value by name
   - Example: `get: username`
-  - Both syntaxes are supported for backward compatibility
   
 - `set: { output: value }`: Set one or more named output values
   - Used with multiple named outputs defined in the output section
