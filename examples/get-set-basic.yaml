@@ -1,0 +1,42 @@
+# Get and Set Operations Example
+# Demonstrates the new get/set syntax for input/output handling
+
+program:
+  name: "Get and Set Basic"
+  description: "Using get for inputs and set for outputs"
+
+input:
+  username:
+    type: string
+    default: "alice"
+  age:
+    type: number
+    default: 25
+
+output:
+  greeting:
+    type: string
+  category:
+    type: string
+
+expression:
+  let:
+    user:
+      get: username
+    user_age:
+      get: age
+    in:
+      set:
+        greeting:
+          concat:
+            - "Hello, "
+            - get: username
+            - "!"
+        category:
+          if:
+            equals:
+              left:
+                get: age
+              right: 25
+          then: "Young Adult"
+          else: "Other"

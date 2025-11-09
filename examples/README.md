@@ -43,6 +43,19 @@ Demonstrates a program with multiple named output declarations:
 - Each output has its own type specification
 - Useful for programs that conceptually produce multiple results
 
+### get-set-basic.yaml
+Demonstrates the new `get` and `set` operations for input/output handling:
+- Uses `get: varname` to reference input variables (recommended)
+- Uses `set: { output: value }` to set multiple named outputs
+- Shows how to use both operations together in a program
+
+### conditional-outputs.yaml
+Demonstrates setting different outputs based on conditions:
+- Uses `get` for input variable references
+- Uses `set` at different nodes in an if/else tree
+- Shows how to conditionally set multiple named outputs
+- Demonstrates if-then chaining with set operations
+
 ## Running Examples
 
 To run any of these examples:
@@ -86,13 +99,45 @@ expression:
     message:
       concat:
         - "Hello, "
-        - "$name"
-    in: "$message"
+        - get: name
+    in:
+      get: message
 ```
 
-Variables are referenced using the `$variable_name` syntax.
+Variables can be referenced using:
+- **Recommended**: `get: varname` syntax
+- **Legacy**: `$variable_name` syntax (still supported for backward compatibility)
+
+For programs with multiple named outputs, use the `set` operation to return an object:
+
+```yaml
+output:
+  greeting:
+    type: string
+  count:
+    type: number
+
+expression:
+  set:
+    greeting: "Hello, World!"
+    count: 42
+```
 
 ## Supported Operations
+
+### Input/Output Operations
+- `get: varname`: Get an input variable value by name (recommended)
+  ```yaml
+  get: username
+  ```
+- `set: { output: value }`: Set one or more named output values
+  ```yaml
+  set:
+    result: "Success"
+    count: 42
+  ```
+  - Can be used at any node in an if/else tree
+  - Returns an object with output names and values
 
 ### Let Bindings
 - `let`: Define local bindings with an expression to evaluate
@@ -101,7 +146,8 @@ Variables are referenced using the `$variable_name` syntax.
     x: 5
     y: 10
     sum: 15
-    in: "$sum"
+    in:
+      get: sum
   ```
 
 ### String Operations
@@ -109,26 +155,30 @@ Variables are referenced using the `$variable_name` syntax.
   ```yaml
   concat:
     - "Hello, "
-    - "$name"
+    - get: name
   ```
 - `length`: Get string length
   ```yaml
-  length: "$text"
+  length:
+    get: text
   ```
 - `substring`: Extract substring
   ```yaml
   substring:
-    value: "$text"
+    value:
+      get: text
     start: 0
     end: 5
   ```
 - `uppercase`: Convert to uppercase
   ```yaml
-  uppercase: "$text"
+  uppercase:
+    get: text
   ```
 - `lowercase`: Convert to lowercase
   ```yaml
-  lowercase: "$text"
+  lowercase:
+    get: text
   ```
 
 ### Boolean Operations
@@ -136,45 +186,52 @@ Variables are referenced using the `$variable_name` syntax.
   ```yaml
   and:
     - true
-    - "$condition"
+    - get: condition
   ```
 - `or`: Logical OR (array or named args)
   ```yaml
   or:
     - false
-    - "$condition"
+    - get: condition
   ```
 - `not`: Logical NOT
   ```yaml
-  not: "$condition"
+  not:
+    get: condition
   ```
 - `equals`: Equality comparison
   ```yaml
   equals:
-    left: "$value1"
-    right: "$value2"
+    left:
+      get: value1
+    right:
+      get: value2
   ```
 
 ### Control Operations
 - `if`: Conditional expression that returns a value
   - **Flat syntax (recommended)**:
     ```yaml
-    if: "$is_valid"
+    if:
+      get: is_valid
     then: "Valid!"
     else: "Invalid!"
     ```
   - **Nested syntax (legacy)**:
     ```yaml
     if:
-      condition: "$is_valid"
+      condition:
+        get: is_valid
       then: "Valid!"
       else: "Invalid!"
     ```
   - **Chaining syntax**:
     ```yaml
-    - if: "$condition1"
+    - if:
+        get: condition1
       then: "Result 1"
-    - if: "$condition2"
+    - if:
+        get: condition2
       then: "Result 2"
     - else: "Default"
     ```

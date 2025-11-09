@@ -36,15 +36,17 @@ export interface FrankaOperation {
 
 export class FrankaInterpreter {
   private variables: Record<string, FrankaValue> = {};
+  private outputs: Record<string, FrankaValue> = {};
 
   loadProgram(filePath: string): FrankaProgram {
     const fileContents = fs.readFileSync(filePath, 'utf8');
     return yaml.load(fileContents, { schema: yaml.CORE_SCHEMA }) as FrankaProgram;
   }
 
-  execute(program: FrankaProgram): FrankaValue {
+  execute(program: FrankaProgram): FrankaValue | Record<string, FrankaValue> {
     // Extract default values from input definitions
     this.variables = {};
+    this.outputs = {};
     if (program.input) {
       for (const [name, definition] of Object.entries(program.input)) {
         if (definition.default !== undefined) {
@@ -58,7 +60,13 @@ export class FrankaInterpreter {
       this.validateOutput(program.output);
     }
 
-    return this.evaluate(program.expression);
+    const result = this.evaluate(program.expression);
+
+    // If outputs were set using 'set:', return them; otherwise return the result
+    if (Object.keys(this.outputs).length > 0) {
+      return this.outputs;
+    }
+    return result;
   }
 
   private validateOutput(
@@ -98,7 +106,7 @@ export class FrankaInterpreter {
     }
   }
 
-  executeFile(filePath: string): FrankaValue {
+  executeFile(filePath: string): FrankaValue | Record<string, FrankaValue> {
     const program = this.loadProgram(filePath);
     return this.execute(program);
   }
@@ -151,6 +159,10 @@ export class FrankaInterpreter {
     switch (operationName) {
       case 'let':
         return this.executeLet(operationArgs);
+      case 'get':
+        return this.executeGet(operationArgs);
+      case 'set':
+        return this.executeSet(operationArgs);
       case 'concat':
         return this.executeConcat(operationArgs);
       case 'uppercase':
@@ -211,6 +223,40 @@ export class FrankaInterpreter {
     Object.assign(this.variables, savedVariables);
 
     return result;
+  }
+
+  private executeGet(args: unknown): FrankaValue {
+    // Get an input variable by name
+    // Usage: get: varname
+    if (typeof args !== 'string') {
+      throw new Error('get operation requires a variable name as a string');
+    }
+    const varName = args;
+    if (!(varName in this.variables)) {
+      throw new Error(`Undefined variable: ${varName}`);
+    }
+    return this.variables[varName];
+  }
+
+  private executeSet(args: unknown): FrankaValue {
+    // Set one or more output values
+    // Usage: set: outputname: value
+    // or: set: { outputname1: value1, outputname2: value2 }
+    if (!args || typeof args !== 'object' || Array.isArray(args)) {
+      throw new Error('set operation requires an object with output names and values');
+    }
+
+    const argsObj = args as Record<string, unknown>;
+    let lastValue: FrankaValue = null;
+
+    for (const [outputName, value] of Object.entries(argsObj)) {
+      const evaluatedValue = this.evaluate(value as FrankaExpression);
+      this.outputs[outputName] = evaluatedValue;
+      lastValue = evaluatedValue;
+    }
+
+    // Return the last value set (useful for chaining)
+    return lastValue;
   }
 
   private extractValue(args: unknown): FrankaValue {

@@ -651,4 +651,271 @@ describe('FrankaInterpreter', () => {
       expect(result).toBe('Hello, World!');
     });
   });
+
+  describe('get operation', () => {
+    it('should get an input variable', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          message: {
+            type: 'string' as const,
+            default: 'Hello',
+          },
+        },
+        expression: {
+          get: 'message',
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('Hello');
+    });
+
+    it('should get an input variable in a concat operation', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          greeting: {
+            type: 'string' as const,
+            default: 'Hello',
+          },
+          name: {
+            type: 'string' as const,
+            default: 'World',
+          },
+        },
+        expression: {
+          concat: [{ get: 'greeting' }, ', ', { get: 'name' }, '!'],
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('Hello, World!');
+    });
+
+    it('should throw error for undefined variable with get', () => {
+      const program = {
+        program: { name: 'Test' },
+        expression: {
+          get: 'undefined',
+        },
+      };
+
+      expect(() => interpreter.execute(program)).toThrow('Undefined variable: undefined');
+    });
+
+    it('should throw error if get argument is not a string', () => {
+      const program = {
+        program: { name: 'Test' },
+        expression: {
+          get: 123,
+        } as any,
+      };
+
+      expect(() => interpreter.execute(program)).toThrow(
+        'get operation requires a variable name as a string'
+      );
+    });
+  });
+
+  describe('set operation', () => {
+    it('should set a single named output', () => {
+      const program = {
+        program: { name: 'Test' },
+        output: {
+          result: {
+            type: 'string' as const,
+          },
+        },
+        expression: {
+          set: {
+            result: 'Hello, World!',
+          },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toEqual({ result: 'Hello, World!' });
+    });
+
+    it('should set multiple named outputs', () => {
+      const program = {
+        program: { name: 'Test' },
+        output: {
+          greeting: {
+            type: 'string' as const,
+          },
+          count: {
+            type: 'number' as const,
+          },
+        },
+        expression: {
+          set: {
+            greeting: 'Hello',
+            count: 42,
+          },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toEqual({ greeting: 'Hello', count: 42 });
+    });
+
+    it('should set named outputs with expressions', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          value: {
+            type: 'number' as const,
+            default: 21,
+          },
+        },
+        output: {
+          doubled: {
+            type: 'string' as const,
+          },
+        },
+        expression: {
+          set: {
+            doubled: {
+              concat: ['Value: ', { get: 'value' }],
+            },
+          },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toEqual({ doubled: 'Value: 21' });
+    });
+
+    it('should set outputs in if/then/else branches', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          condition: {
+            type: 'boolean' as const,
+            default: true,
+          },
+        },
+        output: {
+          result: {
+            type: 'string' as const,
+          },
+        },
+        expression: {
+          if: { get: 'condition' },
+          then: {
+            set: {
+              result: 'True branch',
+            },
+          },
+          else: {
+            set: {
+              result: 'False branch',
+            },
+          },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toEqual({ result: 'True branch' });
+    });
+
+    it('should set outputs in nested if/then/else', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          condition: {
+            type: 'boolean' as const,
+            default: false,
+          },
+        },
+        output: {
+          result: {
+            type: 'string' as const,
+          },
+        },
+        expression: {
+          if: { get: 'condition' },
+          then: {
+            set: {
+              result: 'True branch',
+            },
+          },
+          else: {
+            set: {
+              result: 'False branch',
+            },
+          },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toEqual({ result: 'False branch' });
+    });
+
+    it('should allow setting outputs at different nodes in if/else tree', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          score: {
+            type: 'number' as const,
+            default: 85,
+          },
+        },
+        output: {
+          grade: {
+            type: 'string' as const,
+          },
+          passed: {
+            type: 'boolean' as const,
+          },
+        },
+        expression: [
+          {
+            if: { equals: { left: { get: 'score' }, right: 100 } },
+            then: {
+              set: {
+                grade: 'A+',
+                passed: true,
+              },
+            },
+          },
+          {
+            if: { equals: { left: { get: 'score' }, right: 85 } },
+            then: {
+              set: {
+                grade: 'B+',
+                passed: true,
+              },
+            },
+          },
+          {
+            else: {
+              set: {
+                grade: 'F',
+                passed: false,
+              },
+            },
+          },
+        ],
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toEqual({ grade: 'B+', passed: true });
+    });
+
+    it('should throw error if set argument is not an object', () => {
+      const program = {
+        program: { name: 'Test' },
+        expression: {
+          set: 'invalid',
+        } as any,
+      };
+
+      expect(() => interpreter.execute(program)).toThrow(
+        'set operation requires an object with output names and values'
+      );
+    });
+  });
 });

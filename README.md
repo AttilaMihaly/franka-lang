@@ -15,7 +15,10 @@ Franka is a modern programming language with a self-documenting specification de
 - **String Operations**: concat, uppercase, lowercase, length, substring
 - **Boolean Operations**: and, or, not, equals
 - **Control Flow**: if/then/else conditional expressions
-- **Variable References**: Use `$variable_name` to reference variables
+- **Input/Output Operations**: 
+  - `get: varname` - Reference input variables (recommended)
+  - `set: { output: value }` - Set named outputs
+  - Legacy `$variable_name` syntax still supported for backward compatibility
 - **CLI Tool**: Command-line interface for running and checking Franka programs
 - **MCP Server**: Model Context Protocol server for AI integration
 - **Web API Server**: RESTful API for accessing language specification
@@ -225,11 +228,39 @@ expression:
   let:
     message:
       concat:
-        - "$greeting"
+        - get: greeting
         - ", "
-        - "$name"
+        - get: name
         - "!"
-    in: "$message"
+    in:
+      get: message
+```
+
+**Note**: The legacy `$varname` syntax (e.g., `"$greeting"`) is still supported for backward compatibility, but the new `get: varname` syntax is recommended.
+
+For programs with multiple named outputs, use the `set` operation:
+
+```yaml
+output:
+  greeting:
+    type: string
+  length:
+    type: number
+
+expression:
+  let:
+    msg:
+      concat:
+        - get: greeting
+        - ", "
+        - get: name
+    in:
+      set:
+        greeting:
+          get: msg
+        length:
+          length:
+            get: msg
 ```
 
 #### Input and Output Sections
@@ -253,6 +284,19 @@ expression:
   - Each key (except `in`) defines a variable name and its value
   - The `in` key specifies the expression to evaluate with those bindings
   - Bindings can reference earlier bindings in the same let block
+
+#### Input/Output Operations
+- `get: varname`: Get an input variable value by name (recommended)
+  - Replaces the older `$varname` syntax
+  - Example: `get: username`
+  - Both syntaxes are supported for backward compatibility
+  
+- `set: { output: value }`: Set one or more named output values
+  - Used with multiple named outputs defined in the output section
+  - Can set multiple outputs in a single operation
+  - Can be placed at any node of an if/else tree
+  - Example: `set: { result: "Success", count: 42 }`
+  - When `set` is used, the program returns an object with output names and values
 
 #### String Operations
 - `concat`: Concatenate strings (accepts array or named args)
