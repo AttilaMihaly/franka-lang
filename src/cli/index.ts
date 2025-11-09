@@ -1,35 +1,9 @@
 #!/usr/bin/env node
 
+import { Command } from 'commander';
 import { loadLanguageSpec, getVersion } from '../shared/spec-loader';
 import { FrankaInterpreter } from '../shared/interpreter';
 import * as fs from 'fs';
-
-function showHelp() {
-  const spec = loadLanguageSpec();
-  console.log(`
-Franka Language CLI - ${spec.metadata.description}
-Version: ${spec.metadata.version}
-
-Usage: franka <command> [options]
-
-Commands:
-`);
-
-  spec.tooling.cli.commands.forEach((cmd) => {
-    console.log(`  ${cmd.usage.padEnd(30)} ${cmd.description}`);
-  });
-
-  console.log(`
-Options:
-  -h, --help     Show this help message
-  -v, --version  Show version information
-`);
-}
-
-function showVersion() {
-  const version = getVersion();
-  console.log(`Franka Language v${version}`);
-}
 
 function runFile(filePath: string) {
   console.log(`Running Franka program: ${filePath}`);
@@ -98,49 +72,40 @@ function startRepl() {
 }
 
 function main() {
-  const args = process.argv.slice(2);
+  const spec = loadLanguageSpec();
+  const version = getVersion();
 
-  if (args.length === 0 || args[0] === '-h' || args[0] === '--help') {
-    showHelp();
-    process.exit(0);
-  }
+  const program = new Command();
 
-  if (args[0] === '-v' || args[0] === '--version' || args[0] === 'version') {
-    showVersion();
-    process.exit(0);
-  }
+  program
+    .name('franka')
+    .description(`${spec.metadata.description}`)
+    .version(version, '-v, --version', 'Show version information');
 
-  const command = args[0];
-  const commandArgs = args.slice(1);
+  program
+    .command('run')
+    .description('Execute a Franka program')
+    .argument('<file>', 'Path to the Franka program file')
+    .action((file: string) => {
+      runFile(file);
+    });
 
-  switch (command) {
-    case 'run':
-      if (commandArgs.length === 0) {
-        console.error('Error: No file specified');
-        console.error('Usage: franka run <file>');
-        process.exit(1);
-      }
-      runFile(commandArgs[0]);
-      break;
+  program
+    .command('check')
+    .description('Check syntax of a Franka program')
+    .argument('<file>', 'Path to the Franka program file')
+    .action((file: string) => {
+      checkFile(file);
+    });
 
-    case 'check':
-      if (commandArgs.length === 0) {
-        console.error('Error: No file specified');
-        console.error('Usage: franka check <file>');
-        process.exit(1);
-      }
-      checkFile(commandArgs[0]);
-      break;
-
-    case 'repl':
+  program
+    .command('repl')
+    .description('Start interactive REPL (placeholder)')
+    .action(() => {
       startRepl();
-      break;
+    });
 
-    default:
-      console.error(`Error: Unknown command '${command}'`);
-      console.error('Run "franka --help" for usage information');
-      process.exit(1);
-  }
+  program.parse(process.argv);
 }
 
 main();

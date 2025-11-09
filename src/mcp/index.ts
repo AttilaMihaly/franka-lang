@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { Command } from 'commander';
 import { loadLanguageSpec } from '../shared/spec-loader';
 
 interface McpRequest {
@@ -137,13 +138,22 @@ class FrankaMcpServer {
 }
 
 function main() {
-  const server = new FrankaMcpServer();
+  const spec = loadLanguageSpec();
 
-  const args = process.argv.slice(2);
-  const portArg = args.find((arg) => arg.startsWith('--port='));
-  const port = portArg ? parseInt(portArg.split('=')[1], 10) : 3001;
+  const program = new Command();
 
-  server.start(port);
+  program
+    .name('franka-mcp')
+    .description('Franka MCP Server')
+    .version(spec.metadata.version)
+    .option('-p, --port <number>', 'Port to run the server on', '3001')
+    .action((options) => {
+      const server = new FrankaMcpServer();
+      const port = parseInt(options.port, 10);
+      server.start(port);
+    });
+
+  program.parse(process.argv);
 }
 
 main();

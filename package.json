@@ -30,6 +30,7 @@
   "author": "franka-lang",
   "license": "MIT",
   "devDependencies": {
+    "@types/commander": "^2.12.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.10.0",
     "@typescript-eslint/eslint-plugin": "^8.46.3",
@@ -45,6 +46,7 @@
   "dependencies": {
     "@types/express": "^5.0.5",
     "@types/js-yaml": "^4.0.9",
+    "commander": "^14.0.2",
     "express": "^5.1.0",
     "js-yaml": "^4.1.0"
   }

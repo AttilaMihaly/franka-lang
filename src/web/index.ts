@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { Command } from 'commander';
 import express, { Request, Response } from 'express';
 import { loadLanguageSpec } from '../shared/spec-loader';
 
@@ -75,23 +76,34 @@ app.get('/', (_req: Request, res: Response) => {
 });
 
 function main() {
-  const args = process.argv.slice(2);
-  const portArg = args.find((arg) => arg.startsWith('--port='));
-  const port = portArg ? parseInt(portArg.split('=')[1], 10) : 3000;
+  const spec = loadLanguageSpec();
 
-  app.listen(port, () => {
-    console.log(`Franka Web Server v${spec.metadata.version}`);
-    console.log(`Server running at http://localhost:${port}`);
-    console.log('');
-    console.log('Available endpoints:');
-    console.log(`  http://localhost:${port}/              - API documentation`);
-    console.log(`  http://localhost:${port}/api/spec      - Complete specification`);
-    console.log(`  http://localhost:${port}/api/keywords  - Language keywords`);
-    console.log(`  http://localhost:${port}/api/operators - Language operators`);
-    console.log(`  http://localhost:${port}/health        - Health check`);
-    console.log('');
-    console.log('Press Ctrl+C to stop the server');
-  });
+  const program = new Command();
+
+  program
+    .name('franka-web')
+    .description('Franka Web Server')
+    .version(spec.metadata.version)
+    .option('-p, --port <number>', 'Port to run the server on', '3000')
+    .action((options) => {
+      const port = parseInt(options.port, 10);
+
+      app.listen(port, () => {
+        console.log(`Franka Web Server v${spec.metadata.version}`);
+        console.log(`Server running at http://localhost:${port}`);
+        console.log('');
+        console.log('Available endpoints:');
+        console.log(`  http://localhost:${port}/              - API documentation`);
+        console.log(`  http://localhost:${port}/api/spec      - Complete specification`);
+        console.log(`  http://localhost:${port}/api/keywords  - Language keywords`);
+        console.log(`  http://localhost:${port}/api/operators - Language operators`);
+        console.log(`  http://localhost:${port}/health        - Health check`);
+        console.log('');
+        console.log('Press Ctrl+C to stop the server');
+      });
+    });
+
+  program.parse(process.argv);
 }
 
 main();
