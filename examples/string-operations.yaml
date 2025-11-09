@@ -25,10 +25,10 @@ expression:
       uppercase: "$message"
     lower_message:
       lowercase: "$message"
-    in:
-      concat:
-        - "$message"
-        - "\n"
-        - "$upper_message"
-        - "\n"
-        - "$lower_message"
+  in:
+    concat:
+      - "$message"
+      - "\n"
+      - "$upper_message"
+      - "\n"
+      - "$lower_message"

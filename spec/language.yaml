@@ -128,7 +128,22 @@ syntax:
     
     let:
       - name: "let"
-        description: "Define local variable bindings with lexical scoping"
+        description: "Define local variable bindings with lexical scoping. Supports flat syntax where 'let' and 'in' are at the same indentation level."
+        syntax_variants:
+          - name: "nested"
+            description: "Original nested syntax (still supported for backward compatibility)"
+            example: |
+              let:
+                x: 5
+                y: 10
+                in: "$x"
+          - name: "flat"
+            description: "Flat syntax with let and in at the same indentation level (recommended)"
+            example: |
+              let:
+                x: 5
+                y: 10
+              in: "$x"
         parameters:
           - name: "bindings"
             type: "mapping"
@@ -145,8 +160,8 @@ syntax:
                 - get: x
                 - " + "
                 - get: y
-            in:
-              get: sum
+          in:
+            get: sum
     
     string:
       - name: "concat"
@@ -420,7 +435,7 @@ examples:
               - "!"
           upper_message:
             uppercase: "$message"
-          in: "$upper_message"
+        in: "$upper_message"
   
   - name: "Boolean Logic"
     description: "Demonstrate boolean operations"
@@ -446,7 +461,7 @@ examples:
             if: "$can_access"
             then: "Access granted"
             else: "Access denied"
-          in: "$result"
+        in: "$result"
   
   - name: "Conditional String Processing"
     description: "Combine boolean and string operations"
@@ -476,7 +491,7 @@ examples:
                 - "$username"
                 - "!"
             else: "Unknown user"
-          in: "$greeting"
+        in: "$greeting"
 
   - name: "If-Then Chaining"
     description: "Chain multiple conditional expressions"
@@ -503,7 +518,7 @@ examples:
                   right: 85
               then: "B+ Great!"
             - else: "Keep Trying!"
-          in: "$grade"
+        in: "$grade"
   
   - name: "Single Output"
     description: "Program with a single unnamed output declaration"
@@ -531,7 +546,7 @@ examples:
               - ", "
               - "$name"
               - "!"
-          in: "$message"
+        in: "$message"
   
   - name: "Multiple Outputs"
     description: "Program with multiple named output declarations (legacy $varname syntax)"
@@ -559,7 +574,7 @@ examples:
             concat:
               - "Value doubled: "
               - "$value"
-          in: "$doubled_value"
+        in: "$doubled_value"
   
   - name: "Get and Set Operations"
     description: "Demonstrate the new get/set syntax for input/output handling"
@@ -588,21 +603,21 @@ examples:
             get: username
           user_age:
             get: age
-          in:
-            set:
-              greeting:
-                concat:
-                  - "Hello, "
-                  - get: username
-                  - "!"
-              category:
-                if:
-                  equals:
-                    left:
-                      get: age
-                    right: 25
-                then: "Young Adult"
-                else: "Other"
+        in:
+          set:
+            greeting:
+              concat:
+                - "Hello, "
+                - get: username
+                - "!"
+            category:
+              if:
+                equals:
+                  left:
+                    get: age
+                  right: 25
+              then: "Young Adult"
+              else: "Other"
   
   - name: "Conditional Outputs"
     description: "Setting different outputs based on conditions using get/set"

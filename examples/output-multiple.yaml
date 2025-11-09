@@ -24,4 +24,4 @@ expression:
       concat:
         - "Value doubled: "
         - "$value"
-    in: "$doubled_value"
+  in: "$doubled_value"

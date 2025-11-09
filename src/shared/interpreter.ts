@@ -153,6 +153,11 @@ export class FrankaInterpreter {
       return this.executeFlatIf(expression);
     }
 
+    // Check if this is a flat let/in structure
+    if (keys.includes('let') && keys.includes('in')) {
+      return this.executeFlatLet(expression);
+    }
+
     const operationName = keys[0];
     const operationArgs = expression[operationName];
 
@@ -217,6 +222,42 @@ export class FrankaInterpreter {
 
     // Restore previous variable scope by clearing and repopulating
     // Don't replace the object to avoid breaking outer scopes
+    for (const key of Object.keys(this.variables)) {
+      delete this.variables[key];
+    }
+    Object.assign(this.variables, savedVariables);
+
+    return result;
+  }
+
+  private executeFlatLet(expr: Record<string, unknown>): FrankaValue {
+    // Handle flat let/in structure where let and in are at the same indentation level
+    if (!('let' in expr)) {
+      throw new Error('Flat let structure requires "let" key');
+    }
+    if (!('in' in expr)) {
+      throw new Error('Flat let structure requires "in" key');
+    }
+
+    const letBindings = expr.let;
+    const inExpression = expr.in;
+
+    if (!letBindings || typeof letBindings !== 'object' || Array.isArray(letBindings)) {
+      throw new Error('let bindings must be an object');
+    }
+
+    // Save current variable scope
+    const savedVariables = { ...this.variables };
+
+    // Add bindings sequentially so later bindings can reference earlier ones
+    for (const [key, value] of Object.entries(letBindings as Record<string, unknown>)) {
+      this.variables[key] = this.evaluate(value as FrankaExpression);
+    }
+
+    // Evaluate the "in" expression with the new bindings
+    const result = this.evaluate(inExpression as FrankaExpression);
+
+    // Restore previous variable scope
     for (const key of Object.keys(this.variables)) {
       delete this.variables[key];
     }

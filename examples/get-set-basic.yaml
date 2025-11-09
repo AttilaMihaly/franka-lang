@@ -25,18 +25,18 @@ expression:
       get: username
     user_age:
       get: age
-    in:
-      set:
-        greeting:
-          concat:
-            - "Hello, "
-            - get: username
-            - "!"
-        category:
-          if:
-            equals:
-              left:
-                get: age
-              right: 25
-          then: "Young Adult"
-          else: "Other"
+  in:
+    set:
+      greeting:
+        concat:
+          - "Hello, "
+          - get: username
+          - "!"
+      category:
+        if:
+          equals:
+            left:
+              get: age
+            right: 25
+        then: "Young Adult"
+        else: "Other"
