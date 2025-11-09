@@ -37,10 +37,10 @@ expression:
       if: "$is_guest"
       then: "Welcome, guest!"
       else: null
-    in:
-      concat:
-        - "$access_message"
-        - "\n"
-        - "$view_message"
-        - "\n"
-        - "$guest_message"
+  in:
+    concat:
+      - "$access_message"
+      - "\n"
+      - "$view_message"
+      - "\n"
+      - "$guest_message"

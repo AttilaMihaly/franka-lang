@@ -103,6 +103,58 @@ describe('FrankaInterpreter', () => {
       const result = interpreter.execute(program);
       expect(result).toBe(10);
     });
+
+    it('should support flat let/in syntax', () => {
+      const program = {
+        program: { name: 'Test' },
+        expression: {
+          let: {
+            x: 5,
+          },
+          in: '$x',
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(5);
+    });
+
+    it('should support flat let/in with multiple bindings', () => {
+      const program = {
+        program: { name: 'Test' },
+        expression: {
+          let: {
+            x: 5,
+            y: { concat: ['Value is ', '$x'] },
+          },
+          in: '$y',
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('Value is 5');
+    });
+
+    it('should support nested flat let/in bindings', () => {
+      const program = {
+        program: { name: 'Test' },
+        expression: {
+          let: {
+            x: 5,
+            result: {
+              let: {
+                y: 10,
+              },
+              in: '$y',
+            },
+          },
+          in: '$result',
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(10);
+    });
   });
 
   describe('string operations', () => {

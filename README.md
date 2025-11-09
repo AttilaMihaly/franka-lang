@@ -232,8 +232,8 @@ expression:
         - ", "
         - get: name
         - "!"
-    in:
-      get: message
+  in:
+    get: message
 ```
 
 **Note**: The legacy `$varname` syntax (e.g., `"$greeting"`) is still supported for backward compatibility, but the new `get: varname` syntax is recommended.
@@ -254,13 +254,13 @@ expression:
         - get: greeting
         - ", "
         - get: name
-    in:
-      set:
-        greeting:
-          get: msg
+  in:
+    set:
+      greeting:
+        get: msg
+      length:
         length:
-          length:
-            get: msg
+          get: msg
 ```
 
 #### Input and Output Sections
@@ -281,8 +281,10 @@ expression:
 
 #### Let Bindings
 - `let`: Define local variable bindings with lexical scoping
-  - Each key (except `in`) defines a variable name and its value
-  - The `in` key specifies the expression to evaluate with those bindings
+  - Supports flat syntax where `let` and `in` are at the same indentation level (recommended)
+  - Also supports legacy nested syntax for backward compatibility
+  - Each binding defines a variable name and its value
+  - The `in` expression specifies what to evaluate with those bindings
   - Bindings can reference earlier bindings in the same let block
 
 #### Input/Output Operations
