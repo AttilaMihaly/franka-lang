@@ -223,7 +223,7 @@ output:
   # count:
   #   type: number
 
-expression:
+logic:
   # Use let/in for local bindings
   let:
     message:

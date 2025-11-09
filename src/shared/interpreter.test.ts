@@ -8,7 +8,7 @@ describe('FrankaInterpreter', () => {
     interpreter = new FrankaInterpreter();
   });
 
-  describe('basic expressions', () => {
+  describe('basic logic', () => {
     it('should evaluate a simple string value', () => {
       const program = {
         program: { name: 'Test' },
@@ -522,7 +522,7 @@ describe('FrankaInterpreter', () => {
       expect(() => interpreter.execute(program)).toThrow('Unknown operation: unknown_op');
     });
 
-    it('should throw error for let without in expression', () => {
+    it('should throw error for let without in logic', () => {
       const program = {
         program: { name: 'Test' },
         logic: {
@@ -799,7 +799,7 @@ describe('FrankaInterpreter', () => {
       expect(result).toEqual({ greeting: 'Hello', count: 42 });
     });
 
-    it('should set named outputs with expressions', () => {
+    it('should set named outputs with logic', () => {
       const program = {
         program: { name: 'Test' },
         input: {
