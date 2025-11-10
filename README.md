@@ -15,6 +15,7 @@ Franka is a modern programming language with a self-documenting specification de
 - **String Operations**: concat, uppercase, lowercase, length, substring
 - **Boolean Operations**: and, or, not, equals
 - **Control Flow**: if/then/else conditional logic
+- **Operation Chaining**: Chain operations together like pipe operators (|>) in functional languages
 - **Input/Output Operations**: 
   - `get: varname` - Reference input variables
   - `set: { output: value }` - Set named outputs
@@ -333,6 +334,49 @@ logic:
     3. **Chaining syntax**: List of `if`/`then` pairs with final `else` for if-elif-else patterns
   - The condition is evaluated, and returns `then` logic if true, `else` logic if false
   - The `else` branch is optional
+
+#### Operation Chaining
+Chain operations together where each operation receives the result of the previous one, similar to pipe operators (`|>`) in functional languages like Elm.
+
+**Syntax**: A list of operations where each receives the output of the previous operation
+
+```yaml
+logic:
+  - get: greeting      # Get initial value
+  - uppercase          # Transform to uppercase
+  - concat: " world!"  # Append text
+```
+
+**Features**:
+- First operation is typically `get` to retrieve a value
+- Subsequent operations can be written as simple names (e.g., `uppercase`) for operations without parameters
+- Operations with parameters (e.g., `concat: " world!"`) receive the piped value as the first input
+- Chains must have at least 2 elements
+- Supports all string operations: `uppercase`, `lowercase`, `length`, `substring`, `concat`
+- Supports boolean operations: `not`, `and`, `or`, `equals`
+- Can be used within let bindings or as the main logic
+
+**Example**:
+```yaml
+let:
+  message:
+    - get: greeting
+    - uppercase
+    - concat:
+        - ", "
+        - get: name
+    - concat: "!"
+in:
+  get: message
+```
+
+This is equivalent to Elm's:
+```elm
+greeting
+  |> uppercase
+  |> (\s -> concat [s, ", ", name])
+  |> (\s -> concat [s, "!"])
+```
 
 View the specification file directly or access it programmatically through the API.
 

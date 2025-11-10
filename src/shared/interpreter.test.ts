@@ -958,4 +958,209 @@ describe('FrankaInterpreter', () => {
       );
     });
   });
+
+  describe('operation chaining', () => {
+    it('should chain simple operations', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          text: {
+            type: 'string' as const,
+            default: 'hello',
+          },
+        },
+        logic: [{ get: 'text' }, 'uppercase'],
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('HELLO');
+    });
+
+    it('should chain multiple operations', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          text: {
+            type: 'string' as const,
+            default: 'hello',
+          },
+        },
+        logic: [{ get: 'text' }, 'uppercase', 'length'],
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(5);
+    });
+
+    it('should chain operations with parameters', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          greeting: {
+            type: 'string' as const,
+            default: 'hello',
+          },
+        },
+        logic: [{ get: 'greeting' }, 'uppercase', { concat: ' world!' }],
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('HELLO world!');
+    });
+
+    it('should chain with concat using array', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          greeting: {
+            type: 'string' as const,
+            default: 'hello',
+          },
+        },
+        logic: [{ get: 'greeting' }, 'uppercase', { concat: [' ', 'world'] }],
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('HELLO world');
+    });
+
+    it('should chain with substring operation', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          text: {
+            type: 'string' as const,
+            default: 'hello world',
+          },
+        },
+        logic: [{ get: 'text' }, { substring: { start: 0, end: 5 } }, 'uppercase'],
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('HELLO');
+    });
+
+    it('should chain boolean operations', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          value: {
+            type: 'boolean' as const,
+            default: true,
+          },
+        },
+        logic: [{ get: 'value' }, 'not', 'not'],
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(true);
+    });
+
+    it('should chain with equals operation', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          text: {
+            type: 'string' as const,
+            default: 'hello',
+          },
+        },
+        logic: [{ get: 'text' }, 'uppercase', { equals: 'HELLO' }],
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(true);
+    });
+
+    it('should chain with and operation', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          value: {
+            type: 'boolean' as const,
+            default: true,
+          },
+        },
+        logic: [{ get: 'value' }, { and: [true, true] }],
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(true);
+    });
+
+    it('should chain with or operation', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          value: {
+            type: 'boolean' as const,
+            default: false,
+          },
+        },
+        logic: [{ get: 'value' }, { or: [true] }],
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(true);
+    });
+
+    it('should work with complex chaining example', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          greeting: {
+            type: 'string' as const,
+            default: 'hello',
+          },
+          name: {
+            type: 'string' as const,
+            default: 'world',
+          },
+        },
+        logic: {
+          let: {
+            message: [
+              { get: 'greeting' },
+              'uppercase',
+              { concat: [', ', { get: 'name' }] },
+              { concat: '!' },
+            ],
+          },
+          in: { get: 'message' },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('HELLO, world!');
+    });
+
+    it('should throw error for unsupported operation in chain', () => {
+      const program = {
+        program: { name: 'Test' },
+        input: {
+          text: {
+            type: 'string' as const,
+            default: 'hello',
+          },
+        },
+        logic: [{ get: 'text' }, 'unsupported'],
+      };
+
+      expect(() => interpreter.execute(program)).toThrow(
+        "Operation 'unsupported' cannot be used without parameters in a chain"
+      );
+    });
+
+    it('should require at least 2 elements for operation chain', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: ['uppercase'],
+      };
+
+      // Single element arrays are not treated as chains
+      expect(() => interpreter.execute(program)).toThrow(
+        'Arrays cannot be used as standalone logic'
+      );
+    });
+  });
 });

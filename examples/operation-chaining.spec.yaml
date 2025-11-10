@@ -1,0 +1,15 @@
+tests:
+  - description: "Test with default inputs"
+    expectedOutput: "hello, world\nHELLO, world!"
+  
+  - description: "Test with custom greeting"
+    input:
+      greeting: "hi"
+      name: "franka"
+    expectedOutput: "hi, franka!\nHI, franka!"
+  
+  - description: "Test with custom name"
+    input:
+      greeting: "greetings"
+      name: "universe"
+    expectedOutput: "greetings, u\nGREETINGS, universe!"

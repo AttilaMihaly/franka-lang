@@ -344,6 +344,55 @@ syntax:
           - name: "else"
             type: "logic"
             description: "Logic to evaluate if condition is false (optional)"
+    
+    chaining:
+      - name: "operation chaining"
+        description: "Chain operations together where each operation receives the result of the previous one, similar to pipe operators (|>) in functional languages like Elm."
+        syntax: "A list of operations where each receives the output of the previous operation"
+        format: |
+          - operation1: value
+          - operation2
+          - operation3: parameter
+        parameters:
+          - name: "operations"
+            type: "list"
+            description: "List of operations to chain. Each operation can be a simple string (operation name) or an object with operation name and parameters"
+        example: |
+          - get: greeting
+          - uppercase
+          - concat: " world!"
+        notes:
+          - "The first operation is typically 'get' to retrieve a value"
+          - "Subsequent operations can be written as simple names (e.g., 'uppercase') for operations that don't need parameters"
+          - "Operations with parameters (e.g., 'concat: \" world!\"') will receive the piped value as the first input"
+          - "Chain must have at least 2 elements to be recognized as a chain"
+          - "Supports all string operations (uppercase, lowercase, length, substring, concat)"
+          - "Supports boolean operations (not, and, or, equals)"
+          - "Can be used within let bindings or as the main logic"
+        supported_operations:
+          - name: "uppercase"
+            description: "Convert piped value to uppercase"
+          - name: "lowercase"
+            description: "Convert piped value to lowercase"
+          - name: "length"
+            description: "Get length of piped string value"
+          - name: "substring"
+            description: "Extract substring from piped value"
+            parameters: "start and optional end"
+          - name: "concat"
+            description: "Concatenate piped value with additional values"
+            parameters: "string value or array of values to append"
+          - name: "not"
+            description: "Negate piped boolean value"
+          - name: "and"
+            description: "AND piped value with additional values"
+            parameters: "boolean value or array of values"
+          - name: "or"
+            description: "OR piped value with additional values"
+            parameters: "boolean value or array of values"
+          - name: "equals"
+            description: "Compare piped value with another value"
+            parameters: "value to compare with"
 
   data_types:
     primitives:
@@ -755,3 +804,31 @@ examples:
           set:
             foo: 2
             bar: "C"
+
+  - name: "Operation Chaining"
+    description: "Demonstrate operation chaining with pipe-like syntax"
+    code: |
+      program:
+        name: "Operation Chaining"
+        description: "Chain operations like Elm's pipe operator (|>)"
+      
+      input:
+        greeting:
+          type: string
+          default: "hello"
+        name:
+          type: string
+          default: "world"
+      
+      logic:
+        let:
+          # Simple chain: get -> uppercase -> concat
+          message:
+            - get: greeting
+            - uppercase
+            - concat:
+                - ", "
+                - get: name
+            - concat: "!"
+        in:
+          get: message

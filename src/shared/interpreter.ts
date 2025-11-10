@@ -122,11 +122,15 @@ export class FrankaInterpreter {
       return logic as FrankaValue;
     }
 
-    // Handle arrays for if/then/else chaining or sequences
+    // Handle arrays for if/then/else chaining, operation chaining, or sequences
     if (Array.isArray(logic)) {
       // Check if this is an if/then/else chain
       if (this.isIfChain(logic)) {
         return this.executeIfChain(logic);
+      }
+      // Check if this is an operation chain
+      if (this.isOperationChain(logic)) {
+        return this.executeOperationChain(logic);
       }
       // Otherwise, treat it as a sequence of operations to execute in order
       return this.executeSequence(logic);
@@ -485,6 +489,12 @@ export class FrankaInterpreter {
     // Execute a sequence of operations in order
     // If any operation sets outputs, accumulate them
     // Return the last evaluated value (or null if empty)
+
+    // Sequences must have at least 2 elements to make sense
+    if (sequence.length < 2) {
+      throw new Error('Arrays cannot be used as standalone logic');
+    }
+
     let lastValue: FrankaValue = null;
 
     for (const item of sequence) {
@@ -492,5 +502,163 @@ export class FrankaInterpreter {
     }
 
     return lastValue;
+  }
+
+  private isOperationChain(arr: unknown[]): boolean {
+    // Check if the array is an operation chain (pipe-like)
+    // Operation chains must have at least 2 elements
+    // First element can be any operation (typically get)
+    // Subsequent elements should be operations or strings (operation names)
+    if (arr.length < 2) return false;
+
+    // All elements should be either objects or strings
+    for (const item of arr) {
+      if (typeof item === 'string') {
+        // Simple operation name
+        continue;
+      }
+      if (!item || typeof item !== 'object' || Array.isArray(item)) {
+        return false;
+      }
+      // Check if this looks like an operation (has at least one key)
+      const keys = Object.keys(item as Record<string, unknown>);
+      if (keys.length === 0) {
+        return false;
+      }
+      // If it has 'if' and 'then', it's part of an if-chain, not an operation chain
+      if (keys.includes('if') && keys.includes('then')) {
+        return false;
+      }
+      // If it only has 'else', it's part of an if-chain
+      if (keys.length === 1 && keys[0] === 'else') {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private executeOperationChain(chain: unknown[]): FrankaValue {
+    // Execute a chain of operations where each operation receives the result of the previous one
+    // Similar to the pipe operator (|>) in functional languages
+    let result: FrankaValue = null;
+
+    for (let i = 0; i < chain.length; i++) {
+      const item = chain[i];
+
+      if (typeof item === 'string') {
+        // Simple operation name without parameters - apply it to the previous result
+        result = this.applyOperationToValue(item, result);
+      } else if (item && typeof item === 'object' && !Array.isArray(item)) {
+        const itemObj = item as Record<string, unknown>;
+        const keys = Object.keys(itemObj);
+
+        if (keys.length === 1) {
+          const operationName = keys[0];
+          const operationArgs = itemObj[operationName];
+
+          // For the first operation, evaluate normally (no piped value yet)
+          if (i === 0) {
+            result = this.evaluate(item as FrankaLogic);
+          } else {
+            // For subsequent operations, apply with the piped value
+            result = this.applyOperationWithArgs(operationName, operationArgs, result);
+          }
+        } else {
+          // Multiple keys - evaluate as is
+          result = this.evaluate(item as FrankaLogic);
+        }
+      } else {
+        throw new Error('Invalid operation in chain');
+      }
+    }
+
+    return result;
+  }
+
+  private applyOperationToValue(operationName: string, value: FrankaValue): FrankaValue {
+    // Apply an operation to a value (used in operation chains)
+    switch (operationName) {
+      case 'uppercase':
+        return String(value).toUpperCase();
+      case 'lowercase':
+        return String(value).toLowerCase();
+      case 'length':
+        return String(value).length;
+      case 'not':
+        return !Boolean(value);
+      default:
+        throw new Error(
+          `Operation '${operationName}' cannot be used without parameters in a chain`
+        );
+    }
+  }
+
+  private applyOperationWithArgs(
+    operationName: string,
+    args: unknown,
+    pipedValue: FrankaValue
+  ): FrankaValue {
+    // Apply an operation with arguments, using the piped value
+    switch (operationName) {
+      case 'concat':
+        // If args is an array, prepend the piped value
+        if (Array.isArray(args)) {
+          const values = [pipedValue, ...args];
+          return values.map((v: unknown) => this.evaluate(v as FrankaLogic)).join('');
+        } else if (args && typeof args === 'object' && 'values' in args) {
+          const values = [pipedValue, ...(args as { values: unknown[] }).values];
+          return values.map((v: unknown) => this.evaluate(v as FrankaLogic)).join('');
+        }
+        // If it's a simple value, treat as concat with piped value
+        return String(pipedValue) + String(this.evaluate(args as FrankaLogic));
+      case 'substring':
+        // For substring, the piped value becomes the 'value' parameter
+        if (!args || typeof args !== 'object') {
+          throw new Error(
+            'substring operation requires start and optional end parameters in chain'
+          );
+        }
+        const substringArgs = args as { start: FrankaLogic; end?: FrankaLogic };
+        const start = this.evaluate(substringArgs.start);
+        const end = substringArgs.end !== undefined ? this.evaluate(substringArgs.end) : undefined;
+        return String(pipedValue).substring(start as number, end as number | undefined);
+      case 'uppercase':
+        // Ignore args, just uppercase the piped value
+        return String(pipedValue).toUpperCase();
+      case 'lowercase':
+        // Ignore args, just lowercase the piped value
+        return String(pipedValue).toLowerCase();
+      case 'length':
+        // Ignore args, just get length of piped value
+        return String(pipedValue).length;
+      case 'not':
+        // Ignore args, just negate the piped value
+        return !Boolean(pipedValue);
+      case 'and':
+        // Combine piped value with other values in AND operation
+        if (Array.isArray(args)) {
+          const values = [pipedValue, ...args.map((v: unknown) => this.evaluate(v as FrankaLogic))];
+          return values.every((v: FrankaValue) => Boolean(v));
+        }
+        return Boolean(pipedValue) && Boolean(this.evaluate(args as FrankaLogic));
+      case 'or':
+        // Combine piped value with other values in OR operation
+        if (Array.isArray(args)) {
+          const values = [pipedValue, ...args.map((v: unknown) => this.evaluate(v as FrankaLogic))];
+          return values.some((v: FrankaValue) => Boolean(v));
+        }
+        return Boolean(pipedValue) || Boolean(this.evaluate(args as FrankaLogic));
+      case 'equals':
+        // Compare piped value with the argument
+        if (args && typeof args === 'object' && 'right' in args) {
+          const right = this.evaluate((args as { right: FrankaLogic }).right);
+          return pipedValue === right;
+        }
+        // If just a value, compare with piped value
+        return pipedValue === this.evaluate(args as FrankaLogic);
+      default:
+        throw new Error(`Operation '${operationName}' is not supported in chains with arguments`);
+    }
   }
 }
