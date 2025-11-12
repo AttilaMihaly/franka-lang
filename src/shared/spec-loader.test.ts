@@ -82,23 +82,26 @@ describe('spec-loader', () => {
 
       const helloWorld = spec.examples.find((ex) => ex.name === 'Hello World');
       expect(helloWorld).toBeDefined();
-      expect(helloWorld?.code).toContain('program:');
+      expect(helloWorld?.code).toContain('module:');
+      expect(helloWorld?.code).toContain('main:');
       expect(helloWorld?.code).toContain('logic:');
     });
 
-    it('should have program structure defined', () => {
+    it('should have module structure defined', () => {
       const spec = loadLanguageSpec();
-      expect(spec.syntax.program_structure).toBeDefined();
-      expect(spec.syntax.program_structure.root_keys).toBeInstanceOf(Array);
-      expect(spec.syntax.program_structure.root_keys.length).toBeGreaterThan(0);
+      expect(spec.syntax.module_structure).toBeDefined();
+      expect(spec.syntax.module_structure.root_keys).toBeInstanceOf(Array);
+      expect(spec.syntax.module_structure.root_keys.length).toBeGreaterThan(0);
 
-      const programKey = spec.syntax.program_structure.root_keys.find((k) => k.name === 'program');
-      expect(programKey).toBeDefined();
-      expect(programKey?.required).toBe(true);
+      const moduleKey = spec.syntax.module_structure.root_keys.find((k) => k.name === 'module');
+      expect(moduleKey).toBeDefined();
+      expect(moduleKey?.required).toBe(true);
 
-      const logicKey = spec.syntax.program_structure.root_keys.find((k) => k.name === 'logic');
-      expect(logicKey).toBeDefined();
-      expect(logicKey?.required).toBe(true);
+      const functionKey = spec.syntax.module_structure.root_keys.find(
+        (k) => k.name === 'function_name'
+      );
+      expect(functionKey).toBeDefined();
+      expect(functionKey?.required).toBe(true);
     });
   });
 

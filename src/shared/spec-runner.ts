@@ -144,17 +144,17 @@ export class SpecRunner {
    */
   runAllTests(programPath: string, specPath: string, functionName?: string): TestResult[] {
     const interpreter = new FrankaInterpreter();
-    
+
     let program: FrankaProgram;
     if (interpreter.isModuleFile(programPath)) {
       const module = interpreter.loadModule(programPath);
       const func = interpreter.getFunctionFromModule(module, functionName);
-      const fname = functionName || Object.keys(module).filter(k => k !== 'module')[0];
+      const fname = functionName || Object.keys(module).filter((k) => k !== 'module')[0];
       program = interpreter.functionToProgram(module, func, fname);
     } else {
       program = interpreter.loadProgram(programPath);
     }
-    
+
     const spec = this.loadSpec(specPath);
 
     return spec.tests.map((testCase) => this.runTest(program, testCase));

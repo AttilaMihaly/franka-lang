@@ -32,13 +32,21 @@ export interface LanguageSpec {
   };
   syntax: {
     description: string;
-    program_structure: {
+    module_structure: {
       description: string;
       root_keys: Array<{
         name: string;
         description: string;
         required: boolean;
       }>;
+      function_structure?: {
+        description: string;
+        keys: Array<{
+          name: string;
+          description: string;
+          required: boolean;
+        }>;
+      };
     };
     operations: {
       let: Operation[];

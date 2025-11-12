@@ -4,12 +4,13 @@ The language of collaboration - A programming language designed for clear commun
 
 ## Overview
 
-Franka is a modern programming language with a self-documenting specification defined in YAML format. Programs are also written in YAML format using structured operations for clear and collaborative development. This repository contains the language specification and TypeScript-based tooling including a CLI, MCP (Model Context Protocol) server, and Web API server.
+Franka is a modern programming language with a self-documenting specification defined in YAML format. Modules are written in YAML format using structured operations for clear and collaborative development. This repository contains the language specification and TypeScript-based tooling including a CLI, MCP (Model Context Protocol) server, and Web API server.
 
 ## Language Features
 
-- **YAML-Based Syntax**: Programs are written in structured YAML format
-- **Pure Functional**: No side effects - programs evaluate to values
+- **YAML-Based Syntax**: Modules and functions are written in structured YAML format
+- **Module System**: Organize functions into modules for better code organization
+- **Pure Functional**: No side effects - functions evaluate to values
 - **Self-Documenting Specification**: Language specification in YAML format (`spec/language.yaml`)
 - **Let/In Bindings**: Declarative variable bindings with lexical scoping
 - **String Operations**: concat, uppercase, lowercase, length, substring
@@ -19,7 +20,7 @@ Franka is a modern programming language with a self-documenting specification de
 - **Input/Output Operations**: 
   - `get: varname` - Reference input variables
   - `set: { output: value }` - Set named outputs
-- **CLI Tool**: Command-line interface for running and checking Franka programs
+- **CLI Tool**: Command-line interface for running and checking Franka modules
 - **MCP Server**: Model Context Protocol server for AI integration
 - **Web API Server**: RESTful API for accessing language specification
 - **TypeScript Implementation**: Modern, type-safe tooling
@@ -52,13 +53,15 @@ npm run cli -- --help
 node dist/cli/index.js --help
 
 # Available commands
-npm run cli -- version          # Show version
-npm run cli -- run <file>       # Run a Franka program
-npm run cli -- check <file>     # Check syntax and run tests
-npm run cli -- repl             # Start REPL (coming soon)
+npm run cli -- version                    # Show version
+npm run cli -- run <file>                 # Run a Franka module/program
+npm run cli -- run <file> -f <function>   # Run specific function in a module
+npm run cli -- check <file>               # Check syntax and run tests
+npm run cli -- check <file> -f <function> # Check specific function
+npm run cli -- repl                       # Start REPL (coming soon)
 ```
 
-#### Running Example Programs
+#### Running Example Modules
 
 ```bash
 # Run hello world example
@@ -70,13 +73,16 @@ npm run cli -- run examples/string-operations.yaml
 # Run boolean logic example
 npm run cli -- run examples/boolean-logic.yaml
 
+# Run a specific function in a module (if module has multiple functions)
+npm run cli -- run examples/issue-example-v1.yaml -f version1
+
 # Check syntax and run tests (if spec file exists)
 npm run cli -- check examples/hello.yaml
 ```
 
-#### Program Testing with Spec Files
+#### Module Testing with Spec Files
 
-Franka supports automatic testing through spec files. Create a file named `program_name.spec.yaml` alongside your program:
+Franka supports automatic testing through spec files. Create a file named `module_name.spec.yaml` alongside your module:
 
 ```yaml
 tests:
@@ -215,67 +221,70 @@ The Franka language specification is defined in `spec/language.yaml` and include
 - **Tooling**: CLI commands, MCP capabilities, web features
 - **Examples**: Code samples demonstrating language features
 
-### Program Structure
+### Module Structure
 
-Franka is a pure functional language where programs evaluate to a single value:
+Franka is a pure functional language where modules contain functions that evaluate to values:
 
 ```yaml
-program:
-  name: "Program Name"
-  description: "Program description"
+module:
+  name: "Module Name"
+  description: "Module description"
 
-input:
-  greeting:
+main:
+  description: "Function description"
+  input:
+    greeting:
+      type: string
+      default: "Hello"
+    name:
+      type: string
+      default: "World"
+
+  output:
     type: string
-    default: "Hello"
-  name:
-    type: string
-    default: "World"
+    # OR multiple named outputs:
+    # result:
+    #   type: string
+    # count:
+    #   type: number
 
-output:
-  type: string
-  # OR multiple named outputs:
-  # result:
-  #   type: string
-  # count:
-  #   type: number
-
-logic:
-  # Use let/in for local bindings
-  let:
-    message:
-      concat:
-        - get: greeting
-        - ", "
-        - get: name
-        - "!"
-  in:
-    get: message
+  logic:
+    # Use let/in for local bindings
+    let:
+      message:
+        concat:
+          - get: greeting
+          - ", "
+          - get: name
+          - "!"
+    in:
+      get: message
 ```
 
-For programs with multiple named outputs, use the `set` operation:
+For functions with multiple named outputs, use the `set` operation:
 
 ```yaml
-output:
-  greeting:
-    type: string
-  length:
-    type: number
+main:
+  output:
+    greeting:
+      type: string
+    length:
+      type: number
 
-logic:
-  let:
-    msg:
-      concat:
-        - get: greeting
-        - ", "
-        - get: name
-  in:
-    set:
-      greeting:
-        get: msg
-      length:
-        length:
+  logic:
+    let:
+      msg:
+        concat:
+          - get: greeting
+          - ", "
+          - get: name
+    in:
+      set:
+        greeting:
           get: msg
+        length:
+          length:
+            get: msg
 ```
 
 #### Input and Output Sections

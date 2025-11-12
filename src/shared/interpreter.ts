@@ -89,21 +89,23 @@ export class FrankaInterpreter {
    */
   getFunctionFromModule(module: FrankaModule, functionName?: string): FrankaFunction {
     // Get all keys except 'module'
-    const functionKeys = Object.keys(module).filter(key => key !== 'module');
-    
+    const functionKeys = Object.keys(module).filter((key) => key !== 'module');
+
     if (functionKeys.length === 0) {
       throw new Error('Module has no functions defined');
     }
 
     // If no function name specified, use the first one
     const targetFunction = functionName || functionKeys[0];
-    
+
     if (!(targetFunction in module)) {
-      throw new Error(`Function "${targetFunction}" not found in module. Available functions: ${functionKeys.join(', ')}`);
+      throw new Error(
+        `Function "${targetFunction}" not found in module. Available functions: ${functionKeys.join(', ')}`
+      );
     }
 
     const func = module[targetFunction];
-    
+
     // Validate that it's a function object
     if (!func || typeof func !== 'object' || !('logic' in func)) {
       throw new Error(`"${targetFunction}" is not a valid function definition`);
@@ -115,7 +117,11 @@ export class FrankaInterpreter {
   /**
    * Convert a module function to program format (for backward compatibility with execute)
    */
-  functionToProgram(module: FrankaModule, func: FrankaFunction, functionName: string): FrankaProgram {
+  functionToProgram(
+    module: FrankaModule,
+    func: FrankaFunction,
+    functionName: string
+  ): FrankaProgram {
     return {
       program: {
         name: `${module.module.name} - ${functionName}`,
@@ -198,7 +204,11 @@ export class FrankaInterpreter {
     if (this.isModuleFile(filePath)) {
       const module = this.loadModule(filePath);
       const func = this.getFunctionFromModule(module, functionName);
-      const program = this.functionToProgram(module, func, functionName || Object.keys(module).filter(k => k !== 'module')[0]);
+      const program = this.functionToProgram(
+        module,
+        func,
+        functionName || Object.keys(module).filter((k) => k !== 'module')[0]
+      );
       return this.execute(program);
     } else {
       const program = this.loadProgram(filePath);

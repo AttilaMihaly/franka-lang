@@ -47,7 +47,7 @@ function checkFile(filePath: string, functionName?: string) {
 
   try {
     const interpreter = new FrankaInterpreter();
-    
+
     // Check if it's a module or program
     if (interpreter.isModuleFile(filePath)) {
       const module = interpreter.loadModule(filePath);
@@ -56,11 +56,11 @@ function checkFile(filePath: string, functionName?: string) {
       if (module.module.description) {
         console.log(`✓ Description: ${module.module.description}`);
       }
-      
+
       // List all functions in the module
-      const functionNames = Object.keys(module).filter(key => key !== 'module');
+      const functionNames = Object.keys(module).filter((key) => key !== 'module');
       console.log(`✓ Functions: ${functionNames.length} (${functionNames.join(', ')})`);
-      
+
       // If a specific function was requested, check it
       if (functionName) {
         const func = interpreter.getFunctionFromModule(module, functionName);
@@ -84,7 +84,9 @@ function checkFile(filePath: string, functionName?: string) {
         for (const fname of functionNames) {
           const func = module[fname];
           if (func && typeof func === 'object' && 'logic' in func) {
-            console.log(`  - ${fname}: ${(func as { description?: string }).description || 'No description'}`);
+            console.log(
+              `  - ${fname}: ${(func as { description?: string }).description || 'No description'}`
+            );
           }
         }
       }

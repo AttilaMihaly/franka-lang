@@ -15,23 +15,33 @@ metadata:
       end: "###"
 
 syntax:
-  description: "Franka is a pure functional language. Programs are written in YAML format and evaluate to a single value."
+  description: "Franka is a pure functional language. Modules are written in YAML format and contain one or more functions that evaluate to values."
   
-  program_structure:
-    description: "A Franka program is a YAML document with logic that evaluates to a value"
+  module_structure:
+    description: "A Franka module is a YAML document containing function definitions"
     root_keys:
-      - name: "program"
-        description: "Root key containing program metadata"
+      - name: "module"
+        description: "Root key containing module metadata (name and description)"
         required: true
-      - name: "input"
-        description: "Input declarations with type definitions and optional default values"
-        required: false
-      - name: "output"
-        description: "Output declarations with type definitions (no default values)"
-        required: false
-      - name: "logic"
-        description: "Logic to evaluate - can be a value, operation, or let binding"
+      - name: "function_name"
+        description: "One or more function definitions (e.g., 'main', 'calculate', etc.)"
         required: true
+    
+    function_structure:
+      description: "Each function contains optional input/output declarations and required logic"
+      keys:
+        - name: "description"
+          description: "Optional description of what the function does"
+          required: false
+        - name: "input"
+          description: "Input declarations with type definitions and optional default values"
+          required: false
+        - name: "output"
+          description: "Output declarations with type definitions (no default values)"
+          required: false
+        - name: "logic"
+          description: "Logic to evaluate - can be a value, operation, or let binding"
+          required: true
     
     input_structure:
       description: "Input declarations specify typed variables with optional default values"
@@ -460,12 +470,18 @@ tooling:
     description: "Command-line interface for the Franka language"
     commands:
       - name: "run"
-        description: "Execute a Franka program"
-        usage: "franka run <file>"
+        description: "Execute a Franka module or program"
+        usage: "franka run <file> [-f|--function <name>]"
+        options:
+          - name: "-f, --function"
+            description: "Function name to execute (for module files). If not specified, executes the first function found."
       
       - name: "check"
         description: "Check syntax without execution"
-        usage: "franka check <file>"
+        usage: "franka check <file> [-f|--function <name>]"
+        options:
+          - name: "-f, --function"
+            description: "Function name to check (for module files). If not specified, checks all functions."
       
       - name: "repl"
         description: "Start interactive REPL"
@@ -491,103 +507,114 @@ tooling:
 
 examples:
   - name: "Hello World"
-    description: "Basic program that returns a greeting"
+    description: "Basic module with a simple greeting function"
     code: |
-      program:
+      module:
         name: "Hello World"
-        description: "A simple greeting program"
+        description: "A simple greeting module"
       
-      logic: "Hello, Franka!"
+      main:
+        description: "Returns a greeting"
+        logic: "Hello, Franka!"
   
   - name: "String Operations"
     description: "Demonstrate string manipulation with let bindings"
     code: |
-      program:
+      module:
         name: "String Operations"
+        description: "Module demonstrating string operations"
       
-      input:
-        greeting:
-          type: string
-          default: "Hello"
-        name:
-          type: string
-          default: "World"
-      
-      logic:
-        let:
-          message:
-            concat:
-              - get: greeting
-              - ", "
-              - get: name
-              - "!"
-          upper_message:
-            uppercase:
-              get: message
-        in:
-          get: upper_message
+      main:
+        description: "Demonstrates string concatenation and transformation"
+        input:
+          greeting:
+            type: string
+            default: "Hello"
+          name:
+            type: string
+            default: "World"
+        
+        logic:
+          let:
+            message:
+              concat:
+                - get: greeting
+                - ", "
+                - get: name
+                - "!"
+            upper_message:
+              uppercase:
+                get: message
+          in:
+            get: upper_message
   
   - name: "Boolean Logic"
     description: "Demonstrate boolean operations"
     code: |
-      program:
+      module:
         name: "Boolean Logic"
+        description: "Module demonstrating boolean operations"
       
-      input:
-        is_valid:
-          type: boolean
-          default: true
-        is_admin:
-          type: boolean
-          default: false
-      
-      logic:
-        let:
-          can_access:
-            and:
-              - get: is_valid
-              - get: is_admin
-          result:
-            if:
-              get: can_access
-            then: "Access granted"
-            else: "Access denied"
-        in:
-          get: result
+      main:
+        description: "Demonstrates AND, OR, NOT with conditional logic"
+        input:
+          is_valid:
+            type: boolean
+            default: true
+          is_admin:
+            type: boolean
+            default: false
+        
+        logic:
+          let:
+            can_access:
+              and:
+                - get: is_valid
+                - get: is_admin
+            result:
+              if:
+                get: can_access
+              then: "Access granted"
+              else: "Access denied"
+          in:
+            get: result
   
   - name: "Conditional String Processing"
     description: "Combine boolean and string operations"
     code: |
-      program:
+      module:
         name: "Conditional String Processing"
+        description: "Module combining boolean and string operations"
       
-      input:
-        username:
-          type: string
-          default: "alice"
-        expected:
-          type: string
-          default: "alice"
-      
-      logic:
-        let:
-          is_match:
-            equals:
-              left:
-                get: username
-              right:
-                get: expected
-          greeting:
-            if:
-              get: is_match
-            then:
-              concat:
-                - "Welcome, "
-                - get: username
-                - "!"
-            else: "Unknown user"
-        in:
-          get: greeting
+      main:
+        description: "Checks username and processes accordingly"
+        input:
+          username:
+            type: string
+            default: "alice"
+          expected:
+            type: string
+            default: "alice"
+        
+        logic:
+          let:
+            is_match:
+              equals:
+                left:
+                  get: username
+                right:
+                  get: expected
+            greeting:
+              if:
+                get: is_match
+              then:
+                concat:
+                  - "Welcome, "
+                  - get: username
+                  - "!"
+              else: "Unknown user"
+          in:
+            get: greeting
 
   - name: "If-Then Chaining"
     description: "Chain multiple conditional logic"
