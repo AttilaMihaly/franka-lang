@@ -10,7 +10,8 @@ export interface TestCase {
 }
 
 export interface ProgramSpec {
-  tests: TestCase[];
+  tests?: TestCase[]; // Legacy format - tests at root level
+  functions?: Record<string, { tests: TestCase[] }>; // New format - tests grouped by function
 }
 
 export interface TestResult {
@@ -44,18 +45,68 @@ export class SpecRunner {
       throw new Error('Invalid spec file: must be a YAML object');
     }
 
-    if (!spec.tests || !Array.isArray(spec.tests)) {
-      throw new Error('Invalid spec file: must contain a "tests" array');
+    // Check if it's the new format (with functions) or legacy format (with tests at root)
+    const hasLegacyFormat = 'tests' in spec && spec.tests !== undefined;
+    const hasNewFormat = 'functions' in spec && spec.functions !== undefined;
+
+    if (!hasLegacyFormat && !hasNewFormat) {
+      throw new Error(
+        'Invalid spec file: must contain either "tests" array (legacy) or "functions" object (new format)'
+      );
     }
 
-    // Validate each test case
-    for (let i = 0; i < spec.tests.length; i++) {
-      const test = spec.tests[i];
-      if (!test || typeof test !== 'object') {
-        throw new Error(`Invalid test case at index ${i}: must be an object`);
+    if (hasLegacyFormat && hasNewFormat) {
+      throw new Error(
+        'Invalid spec file: cannot contain both "tests" and "functions" - use one format only'
+      );
+    }
+
+    // Validate legacy format
+    if (hasLegacyFormat) {
+      if (!Array.isArray(spec.tests)) {
+        throw new Error('Invalid spec file: "tests" must be an array');
       }
-      if (!('expectedOutput' in test)) {
-        throw new Error(`Invalid test case at index ${i}: must contain "expectedOutput" property`);
+
+      for (let i = 0; i < spec.tests!.length; i++) {
+        const test = spec.tests![i];
+        if (!test || typeof test !== 'object') {
+          throw new Error(`Invalid test case at index ${i}: must be an object`);
+        }
+        if (!('expectedOutput' in test)) {
+          throw new Error(
+            `Invalid test case at index ${i}: must contain "expectedOutput" property`
+          );
+        }
+      }
+    }
+
+    // Validate new format
+    if (hasNewFormat) {
+      if (typeof spec.functions !== 'object' || spec.functions === null) {
+        throw new Error('Invalid spec file: "functions" must be an object');
+      }
+
+      for (const [funcName, funcSpec] of Object.entries(spec.functions)) {
+        if (!funcSpec || typeof funcSpec !== 'object') {
+          throw new Error(`Invalid function spec for "${funcName}": must be an object`);
+        }
+        if (!funcSpec.tests || !Array.isArray(funcSpec.tests)) {
+          throw new Error(`Invalid function spec for "${funcName}": must contain a "tests" array`);
+        }
+
+        for (let i = 0; i < funcSpec.tests.length; i++) {
+          const test = funcSpec.tests[i];
+          if (!test || typeof test !== 'object') {
+            throw new Error(
+              `Invalid test case at index ${i} for function "${funcName}": must be an object`
+            );
+          }
+          if (!('expectedOutput' in test)) {
+            throw new Error(
+              `Invalid test case at index ${i} for function "${funcName}": must contain "expectedOutput" property`
+            );
+          }
+        }
       }
     }
 
@@ -144,20 +195,80 @@ export class SpecRunner {
    */
   runAllTests(programPath: string, specPath: string, functionName?: string): TestResult[] {
     const interpreter = new FrankaInterpreter();
-
-    let program: FrankaProgram;
-    if (interpreter.isModuleFile(programPath)) {
-      const module = interpreter.loadModule(programPath);
-      const func = interpreter.getFunctionFromModule(module, functionName);
-      const fname = functionName || Object.keys(module).filter((k) => k !== 'module')[0];
-      program = interpreter.functionToProgram(module, func, fname);
-    } else {
-      program = interpreter.loadProgram(programPath);
-    }
-
     const spec = this.loadSpec(specPath);
 
-    return spec.tests.map((testCase) => this.runTest(program, testCase));
+    // Handle legacy format (tests at root level)
+    if (spec.tests) {
+      let program: FrankaProgram;
+      if (interpreter.isModuleFile(programPath)) {
+        const module = interpreter.loadModule(programPath);
+        const func = interpreter.getFunctionFromModule(module, functionName);
+        const fname = functionName || Object.keys(module).filter((k) => k !== 'module')[0];
+        program = interpreter.functionToProgram(module, func, fname);
+      } else {
+        program = interpreter.loadProgram(programPath);
+      }
+      return spec.tests.map((testCase) => this.runTest(program, testCase));
+    }
+
+    // Handle new format (tests grouped by function)
+    if (spec.functions) {
+      // For non-module files, error
+      if (!interpreter.isModuleFile(programPath)) {
+        throw new Error(
+          'Spec file uses new format with multiple functions, but program file is not a module'
+        );
+      }
+
+      const module = interpreter.loadModule(programPath);
+
+      // If a specific function is requested, run only its tests
+      if (functionName) {
+        const functionSpec = spec.functions[functionName];
+        if (!functionSpec) {
+          throw new Error(
+            `Function "${functionName}" not found in spec file. Available functions: ${Object.keys(spec.functions).join(', ')}`
+          );
+        }
+        const func = interpreter.getFunctionFromModule(module, functionName);
+        const program = interpreter.functionToProgram(module, func, functionName);
+        return functionSpec.tests.map((testCase) => this.runTest(program, testCase));
+      }
+
+      // No specific function requested - run tests for all functions in spec
+      const results: TestResult[] = [];
+
+      for (const [funcName, functionSpec] of Object.entries(spec.functions)) {
+        try {
+          const func = interpreter.getFunctionFromModule(module, funcName);
+          const funcProgram = interpreter.functionToProgram(module, func, funcName);
+
+          const functionResults = functionSpec.tests.map((testCase) => {
+            const result = this.runTest(funcProgram, testCase);
+            // Add function name to description for clarity
+            return {
+              ...result,
+              description: `[${funcName}] ${result.description || 'Unnamed test'}`,
+            };
+          });
+
+          results.push(...functionResults);
+        } catch (error) {
+          // If function doesn't exist in module, add error results for all its tests
+          functionSpec.tests.forEach((testCase, index) => {
+            results.push({
+              passed: false,
+              description: `[${funcName}] ${testCase.description || `Test ${index + 1}`}`,
+              error: `Function "${funcName}" not found in module: ${error instanceof Error ? error.message : String(error)}`,
+            });
+          });
+        }
+      }
+
+      return results;
+    }
+
+    return [];
   }
 
   /**
