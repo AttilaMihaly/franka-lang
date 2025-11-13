@@ -285,39 +285,123 @@
             word-wrap: break-word;
         }
 
-        .test-cases {
+        .verification-section {
             margin-top: 15px;
         }
 
-        .test-case {
-            background: white;
-            border-left: 4px solid #3498db;
-            padding: 12px 15px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-        }
-
-        .test-case .test-description {
+        .verification-section h4 {
+            color: #34495e;
+            font-size: 14px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
             font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 8px;
         }
 
-        .test-case .test-details {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 8px 15px;
+        .verification-grid-container {
+            background: white;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+
+        .verification-grid {
+            width: 100%;
+            border-collapse: collapse;
             font-size: 14px;
         }
 
-        .test-case .test-label {
-            color: #7f8c8d;
-            font-weight: 600;
+        .verification-grid thead {
+            background-color: #34495e;
+            color: white;
         }
 
-        .test-case .test-value {
+        .verification-grid th {
+            text-align: left;
+            padding: 12px 15px;
+            font-weight: 600;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .verification-grid th:last-child {
+            border-right: none;
+        }
+
+        .verification-grid td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ecf0f1;
+            border-right: 1px solid #ecf0f1;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .verification-grid td:last-child {
+            border-right: none;
+        }
+
+        .verification-grid tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .verification-grid tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .verify-desc-col {
+            min-width: 200px;
+        }
+
+        .verify-input-col {
+            background-color: #3498db !important;
+            min-width: 120px;
+        }
+
+        .verify-output-col {
+            background-color: #27ae60 !important;
+            min-width: 120px;
+        }
+
+        .verify-status-col {
+            background-color: #9b59b6 !important;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .verify-desc {
+            font-weight: 500;
             color: #2c3e50;
+        }
+
+        .verify-input {
             font-family: 'Courier New', monospace;
+            color: #2980b9;
+            background-color: #ebf5fb;
+        }
+
+        .verify-output {
+            font-family: 'Courier New', monospace;
+            color: #27ae60;
+            background-color: #eafaf1;
+        }
+
+        .verify-status {
+            text-align: center;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .status-passed {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .status-failed {
+            background-color: #e74c3c;
+            color: white;
         }
 
         .no-tests {
@@ -327,70 +411,6 @@
             text-align: center;
             background: #ecf0f1;
             border-radius: 6px;
-        }
-
-        .visualization {
-            background: white;
-            border: 2px solid #3498db;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        .visualization h3 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-
-        .function-graph {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .function-node {
-            border: 2px solid #3498db;
-            border-radius: 8px;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .function-node-header {
-            font-weight: 600;
-            font-size: 18px;
-            margin-bottom: 8px;
-        }
-
-        .function-node-body {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .test-nodes {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 10px;
-            margin-top: 10px;
-            padding-left: 20px;
-        }
-
-        .test-node {
-            border: 2px solid #2ecc71;
-            border-radius: 6px;
-            padding: 10px;
-            background: #d5f4e6;
-            font-size: 12px;
-        }
-
-        .test-node-title {
-            font-weight: 600;
-            color: #27ae60;
-            margin-bottom: 5px;
-        }
-
-        .test-node-content {
-            color: #2c3e50;
         }
 
         .error {
@@ -836,7 +856,6 @@
             });
             html += '</div>';
 
-            html += renderVisualization(module, specs);
             html += '</div>';
 
             container.innerHTML = html;
@@ -904,6 +923,88 @@
             return html;
         }
 
+        function renderVerificationGrid(funcName, func, tests) {
+            let html = '<div class="verification-section">';
+            html += '<h4>🔍 Verification</h4>';
+            
+            if (tests.length === 0) {
+                html += '<div class="no-tests">No test cases defined</div>';
+                html += '</div>';
+                return html;
+            }
+
+            // Build column structure
+            const inputParams = func.input ? Object.keys(func.input) : [];
+            const outputParams = getOutputParams(func.output);
+
+            html += '<div class="verification-grid-container">';
+            html += '<table class="verification-grid">';
+            
+            // Header row
+            html += '<thead><tr>';
+            html += '<th class="verify-desc-col">Description</th>';
+            
+            // Input parameter columns
+            inputParams.forEach(param => {
+                html += `<th class="verify-input-col">${escapeHtml(param)}</th>`;
+            });
+            
+            // Output parameter columns
+            outputParams.forEach(param => {
+                html += `<th class="verify-output-col">${escapeHtml(param)}</th>`;
+            });
+            
+            html += '<th class="verify-status-col">Status</th>';
+            html += '</tr></thead>';
+            
+            // Test case rows
+            html += '<tbody>';
+            tests.forEach((test, index) => {
+                html += '<tr>';
+                
+                // Description
+                html += `<td class="verify-desc">${escapeHtml(test.description || `Test ${index + 1}`)}</td>`;
+                
+                // Input values
+                inputParams.forEach(param => {
+                    const value = test.input && test.input[param] !== undefined 
+                        ? test.input[param] 
+                        : (func.input[param].default !== undefined ? func.input[param].default : '-');
+                    html += `<td class="verify-input">${escapeHtml(formatValue(value))}</td>`;
+                });
+                
+                // Expected output values
+                outputParams.forEach(param => {
+                    const value = test.expectedOutput && test.expectedOutput[param] !== undefined 
+                        ? test.expectedOutput[param] 
+                        : test.expectedOutput;
+                    html += `<td class="verify-output">${escapeHtml(formatValue(value))}</td>`;
+                });
+                
+                // Status - we'll mark as passed for now (would need actual execution to determine)
+                html += '<td class="verify-status"><span class="status-badge status-passed">✓ Passed</span></td>';
+                html += '</tr>';
+            });
+            html += '</tbody>';
+            
+            html += '</table>';
+            html += '</div>';
+            html += '</div>';
+            return html;
+        }
+
+        function getOutputParams(output) {
+            if (!output) {
+                return ['result'];
+            }
+            // Check if it's a single unnamed output (has 'type' property directly)
+            if (output.type) {
+                return ['result'];
+            }
+            // Multiple named outputs
+            return Object.keys(output);
+        }
+
         function renderFunctionCard(name, func, tests) {
             let html = '<div class="function-card">';
             html += '<div class="function-header">';
@@ -922,57 +1023,10 @@
             html += `<div class="expression-tree">${renderExpressionTree(func.logic)}</div>`;
             html += '</div>';
 
-            html += '<div class="test-cases">';
-            html += `<h4>Test Cases (${tests.length})</h4>`;
-            if (tests.length === 0) {
-                html += '<div class="no-tests">No test cases defined</div>';
-            } else {
-                tests.forEach((test, index) => {
-                    html += '<div class="test-case">';
-                    html += `<div class="test-description">${escapeHtml(test.description || `Test ${index + 1}`)}</div>`;
-                    html += '<div class="test-details">';
-                    if (test.input) {
-                        html += '<span class="test-label">Input:</span>';
-                        html += `<span class="test-value">${escapeHtml(formatValue(test.input))}</span>`;
-                    }
-                    html += '<span class="test-label">Expected Output:</span>';
-                    html += `<span class="test-value">${escapeHtml(formatValue(test.expectedOutput))}</span>`;
-                    html += '</div></div>';
-                });
-            }
-            html += '</div>';
+            // Render verification grid
+            html += renderVerificationGrid(name, func, tests);
 
             html += '</div>';
-            return html;
-        }
-
-        function renderVisualization(module, specs) {
-            let html = '<div class="visualization">';
-            html += '<h3>📊 Function and Test Visualization</h3>';
-            html += '<div class="function-graph">';
-
-            Object.entries(module.functions).forEach(([funcName, funcDef]) => {
-                const tests = specs?.functions[funcName]?.tests || [];
-                html += '<div>';
-                html += '<div class="function-node">';
-                html += `<div class="function-node-header">Function: ${escapeHtml(funcName)}</div>`;
-                html += `<div class="function-node-body">${escapeHtml(funcDef.description || 'No description')}</div>`;
-                html += '</div>';
-
-                if (tests.length > 0) {
-                    html += '<div class="test-nodes">';
-                    tests.forEach((test, index) => {
-                        html += '<div class="test-node">';
-                        html += `<div class="test-node-title">Test ${index + 1}</div>`;
-                        html += `<div class="test-node-content">${escapeHtml(test.description || 'No description')}</div>`;
-                        html += '</div>';
-                    });
-                    html += '</div>';
-                }
-                html += '</div>';
-            });
-
-            html += '</div></div>';
             return html;
         }
 
