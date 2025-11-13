@@ -18,17 +18,17 @@ syntax:
   description: "Franka is a pure functional language. Modules are written in YAML format and contain one or more functions that evaluate to values."
   
   module_structure:
-    description: "A Franka module is a YAML document containing function definitions"
+    description: "A Franka module is a YAML document containing function definitions under a 'functions' key"
     root_keys:
       - name: "module"
         description: "Root key containing module metadata (name and description)"
         required: true
-      - name: "function_name"
-        description: "One or more function definitions (e.g., 'main', 'calculate', etc.)"
+      - name: "functions"
+        description: "A mapping containing one or more function definitions (e.g., 'main', 'calculate', etc.)"
         required: true
     
     function_structure:
-      description: "Each function contains optional input/output declarations and required logic"
+      description: "Each function (under 'functions' key) contains optional input/output declarations and required logic"
       keys:
         - name: "description"
           description: "Optional description of what the function does"
@@ -513,9 +513,10 @@ examples:
         name: "Hello World"
         description: "A simple greeting module"
       
-      main:
-        description: "Returns a greeting"
-        logic: "Hello, Franka!"
+      functions:
+        main:
+          description: "Returns a greeting"
+          logic: "Hello, Franka!"
   
   - name: "String Operations"
     description: "Demonstrate string manipulation with let bindings"
@@ -524,29 +525,30 @@ examples:
         name: "String Operations"
         description: "Module demonstrating string operations"
       
-      main:
-        description: "Demonstrates string concatenation and transformation"
-        input:
-          greeting:
-            type: string
-            default: "Hello"
-          name:
-            type: string
-            default: "World"
-        
-        logic:
-          let:
-            message:
-              concat:
-                - get: greeting
-                - ", "
-                - get: name
-                - "!"
-            upper_message:
-              uppercase:
-                get: message
-          in:
-            get: upper_message
+      functions:
+        main:
+          description: "Demonstrates string concatenation and transformation"
+          input:
+            greeting:
+              type: string
+              default: "Hello"
+            name:
+              type: string
+              default: "World"
+          
+          logic:
+            let:
+              message:
+                concat:
+                  - get: greeting
+                  - ", "
+                  - get: name
+                  - "!"
+              upper_message:
+                uppercase:
+                  get: message
+            in:
+              get: upper_message
   
   - name: "Boolean Logic"
     description: "Demonstrate boolean operations"
@@ -555,29 +557,30 @@ examples:
         name: "Boolean Logic"
         description: "Module demonstrating boolean operations"
       
-      main:
-        description: "Demonstrates AND, OR, NOT with conditional logic"
-        input:
-          is_valid:
-            type: boolean
-            default: true
-          is_admin:
-            type: boolean
-            default: false
-        
-        logic:
-          let:
-            can_access:
-              and:
-                - get: is_valid
-                - get: is_admin
-            result:
-              if:
-                get: can_access
-              then: "Access granted"
-              else: "Access denied"
-          in:
-            get: result
+      functions:
+        main:
+          description: "Demonstrates AND, OR, NOT with conditional logic"
+          input:
+            is_valid:
+              type: boolean
+              default: true
+            is_admin:
+              type: boolean
+              default: false
+          
+          logic:
+            let:
+              can_access:
+                and:
+                  - get: is_valid
+                  - get: is_admin
+              result:
+                if:
+                  get: can_access
+                then: "Access granted"
+                else: "Access denied"
+            in:
+              get: result
   
   - name: "Conditional String Processing"
     description: "Combine boolean and string operations"
@@ -586,276 +589,291 @@ examples:
         name: "Conditional String Processing"
         description: "Module combining boolean and string operations"
       
-      main:
-        description: "Checks username and processes accordingly"
-        input:
-          username:
-            type: string
-            default: "alice"
-          expected:
-            type: string
-            default: "alice"
-        
-        logic:
-          let:
-            is_match:
-              equals:
-                left:
-                  get: username
-                right:
-                  get: expected
-            greeting:
-              if:
-                get: is_match
-              then:
-                concat:
-                  - "Welcome, "
-                  - get: username
-                  - "!"
-              else: "Unknown user"
-          in:
-            get: greeting
+      functions:
+        main:
+          description: "Checks username and processes accordingly"
+          input:
+            username:
+              type: string
+              default: "alice"
+            expected:
+              type: string
+              default: "alice"
+          
+          logic:
+            let:
+              is_match:
+                equals:
+                  left:
+                    get: username
+                  right:
+                    get: expected
+              greeting:
+                if:
+                  get: is_match
+                then:
+                  concat:
+                    - "Welcome, "
+                    - get: username
+                    - "!"
+                else: "Unknown user"
+            in:
+              get: greeting
 
   - name: "If-Then Chaining"
     description: "Chain multiple conditional logic"
     code: |
-      program:
+      module:
         name: "If-Then Chaining"
       
-      input:
-        score:
-          type: number
-          default: 85
+      functions:
+        main:
+          input:
+            score:
+              type: number
+              default: 85
+          
+          logic:
+            let:
+              grade:
+                - if:
+                    equals:
+                      left:
+                        get: score
+                      right: 100
+                  then: "A+ Perfect!"
+                - if:
+                    equals:
+                      left:
+                        get: score
+                      right: 85
+                  then: "B+ Great!"
+                - else: "Keep Trying!"
+            in:
+              get: grade
+  
+  - name: "Single Output"
+    description: "Module with a single unnamed output declaration"
+    code: |
+      module:
+        name: "Single Output"
+        description: "Module with a single unnamed output"
       
-      logic:
-        let:
-          grade:
+      functions:
+        main:
+          input:
+            greeting:
+              type: string
+              default: "Hello"
+            name:
+              type: string
+              default: "World"
+          
+          output:
+            type: string
+          
+          logic:
+            let:
+              message:
+                concat:
+                  - get: greeting
+                  - ", "
+                  - get: name
+                  - "!"
+            in:
+              get: message
+  
+  - name: "Multiple Outputs"
+    description: "Module with multiple named output declarations"
+    code: |
+      module:
+        name: "Multiple Outputs"
+        description: "Module with multiple named outputs"
+      
+      functions:
+        main:
+          input:
+            value:
+              type: number
+              default: 42
+          
+          output:
+            result:
+              type: string
+            is_positive:
+              type: boolean
+            doubled:
+              type: number
+          
+          logic:
+            let:
+              doubled_value:
+                concat:
+                  - "Value doubled: "
+                  - get: value
+            in:
+              get: doubled_value
+  
+  - name: "Get and Set Operations"
+    description: "Demonstrate the new get/set syntax for input/output handling"
+    code: |
+      module:
+        name: "Get and Set Operations"
+        description: "Using get for inputs and set for outputs"
+      
+      functions:
+        main:
+          input:
+            username:
+              type: string
+              default: "alice"
+            age:
+              type: number
+              default: 25
+          
+          output:
+            greeting:
+              type: string
+            category:
+              type: string
+          
+          logic:
+            let:
+              user:
+                get: username
+              user_age:
+                get: age
+            in:
+              set:
+                greeting:
+                  concat:
+                    - "Hello, "
+                    - get: username
+                    - "!"
+                category:
+                  if:
+                    equals:
+                      left:
+                        get: age
+                      right: 25
+                  then: "Young Adult"
+                  else: "Other"
+  
+  - name: "Conditional Outputs"
+    description: "Setting different outputs based on conditions using get/set"
+    code: |
+      module:
+        name: "Conditional Outputs"
+        description: "Set outputs conditionally at different if/else branches"
+      
+      functions:
+        main:
+          input:
+            score:
+              type: number
+              default: 85
+          
+          output:
+            grade:
+              type: string
+            passed:
+              type: boolean
+          
+          logic:
             - if:
                 equals:
                   left:
                     get: score
                   right: 100
-              then: "A+ Perfect!"
+              then:
+                set:
+                  grade: "A+"
+                  passed: true
             - if:
                 equals:
                   left:
                     get: score
                   right: 85
-              then: "B+ Great!"
-            - else: "Keep Trying!"
-        in:
-          get: grade
-  
-  - name: "Single Output"
-    description: "Program with a single unnamed output declaration"
-    code: |
-      program:
-        name: "Single Output"
-        description: "Program with a single unnamed output"
-      
-      input:
-        greeting:
-          type: string
-          default: "Hello"
-        name:
-          type: string
-          default: "World"
-      
-      output:
-        type: string
-      
-      logic:
-        let:
-          message:
-            concat:
-              - get: greeting
-              - ", "
-              - get: name
-              - "!"
-        in:
-          get: message
-  
-  - name: "Multiple Outputs"
-    description: "Program with multiple named output declarations"
-    code: |
-      program:
-        name: "Multiple Outputs"
-        description: "Program with multiple named outputs"
-      
-      input:
-        value:
-          type: number
-          default: 42
-      
-      output:
-        result:
-          type: string
-        is_positive:
-          type: boolean
-        doubled:
-          type: number
-      
-      logic:
-        let:
-          doubled_value:
-            concat:
-              - "Value doubled: "
-              - get: value
-        in:
-          get: doubled_value
-  
-  - name: "Get and Set Operations"
-    description: "Demonstrate the new get/set syntax for input/output handling"
-    code: |
-      program:
-        name: "Get and Set Operations"
-        description: "Using get for inputs and set for outputs"
-      
-      input:
-        username:
-          type: string
-          default: "alice"
-        age:
-          type: number
-          default: 25
-      
-      output:
-        greeting:
-          type: string
-        category:
-          type: string
-      
-      logic:
-        let:
-          user:
-            get: username
-          user_age:
-            get: age
-        in:
-          set:
-            greeting:
-              concat:
-                - "Hello, "
-                - get: username
-                - "!"
-            category:
-              if:
-                equals:
-                  left:
-                    get: age
-                  right: 25
-              then: "Young Adult"
-              else: "Other"
-  
-  - name: "Conditional Outputs"
-    description: "Setting different outputs based on conditions using get/set"
-    code: |
-      program:
-        name: "Conditional Outputs"
-        description: "Set outputs conditionally at different if/else branches"
-      
-      input:
-        score:
-          type: number
-          default: 85
-      
-      output:
-        grade:
-          type: string
-        passed:
-          type: boolean
-      
-      logic:
-        - if:
-            equals:
-              left:
-                get: score
-              right: 100
-          then:
-            set:
-              grade: "A+"
-              passed: true
-        - if:
-            equals:
-              left:
-                get: score
-              right: 85
-          then:
-            set:
-              grade: "B+"
-              passed: true
-        - else:
-            set:
-              grade: "F"
-              passed: false
+              then:
+                set:
+                  grade: "B+"
+                  passed: true
+            - else:
+                set:
+                  grade: "F"
+                  passed: false
   
   - name: "Nested Output Setting"
     description: "Set outputs at non-leaf levels of an if/else tree"
     code: |
-      program:
+      module:
         name: "Nested Output Setting"
         description: "Demonstrates setting outputs at any branch level"
       
-      input:
-        cond1:
-          type: boolean
-          default: true
-        cond2:
-          type: boolean
-          default: true
-      
-      output:
-        foo:
-          type: number
-        bar:
-          type: string
-      
-      logic:
-        if:
-          get: cond1
-        then:
-          # Use a sequence to set foo at non-leaf level
-          - set:
-              foo: 1
-          # Then continue with nested if/else for bar
-          - if:
-              get: cond2
+      functions:
+        main:
+          input:
+            cond1:
+              type: boolean
+              default: true
+            cond2:
+              type: boolean
+              default: true
+          
+          output:
+            foo:
+              type: number
+            bar:
+              type: string
+          
+          logic:
+            if:
+              get: cond1
             then:
-              set:
-                bar: "A"
+              # Use a sequence to set foo at non-leaf level
+              - set:
+                  foo: 1
+              # Then continue with nested if/else for bar
+              - if:
+                  get: cond2
+                then:
+                  set:
+                    bar: "A"
+                else:
+                  set:
+                    bar: "B"
             else:
+              # Set both outputs at leaf level
               set:
-                bar: "B"
-        else:
-          # Set both outputs at leaf level
-          set:
-            foo: 2
-            bar: "C"
+                foo: 2
+                bar: "C"
 
   - name: "Operation Chaining"
     description: "Demonstrate operation chaining with pipe-like syntax"
     code: |
-      program:
+      module:
         name: "Operation Chaining"
         description: "Chain operations like Elm's pipe operator (|>)"
       
-      input:
-        greeting:
-          type: string
-          default: "hello"
-        name:
-          type: string
-          default: "world"
-      
-      logic:
-        let:
-          # Simple chain: get -> uppercase -> concat
-          message:
-            - get: greeting
-            - uppercase
-            - concat:
-                - ", "
-                - get: name
-            - concat: "!"
-        in:
-          get: message
+      functions:
+        main:
+          input:
+            greeting:
+              type: string
+              default: "hello"
+            name:
+              type: string
+              default: "world"
+          
+          logic:
+            let:
+              # Simple chain: get -> uppercase -> concat
+              message:
+                - get: greeting
+                - uppercase
+                - concat:
+                    - ", "
+                    - get: name
+                - concat: "!"
+            in:
+              get: message

@@ -28,13 +28,20 @@ export interface FrankaFunction {
   logic: FrankaLogic;
 }
 
-// Module structure (new format)
+// Module structure (supports both old and new formats)
 export interface FrankaModule {
   module: {
     name: string;
     description?: string;
   };
-  [functionName: string]: FrankaFunction | { name: string; description?: string };
+  // New format: functions under 'functions' key
+  functions?: Record<string, FrankaFunction>;
+  // Old format: functions at root level (index signature for backward compatibility)
+  [functionName: string]:
+    | FrankaFunction
+    | { name: string; description?: string }
+    | Record<string, FrankaFunction>
+    | undefined;
 }
 
 // Legacy program structure (for backward compatibility)
@@ -86,10 +93,28 @@ export class FrankaInterpreter {
 
   /**
    * Get a function from a module by name. If no name is provided, returns the first function found.
+   * Supports both old format (functions at root) and new format (functions under 'functions' key).
    */
   getFunctionFromModule(module: FrankaModule, functionName?: string): FrankaFunction {
-    // Get all keys except 'module'
-    const functionKeys = Object.keys(module).filter((key) => key !== 'module');
+    // Check if module uses new format with 'functions' key
+    const hasNewFormat = 'functions' in module;
+
+    let functionsSource: Record<string, unknown>;
+    let functionKeys: string[];
+
+    if (hasNewFormat) {
+      // New format: functions are under 'functions' key
+      const functions = module.functions as Record<string, unknown>;
+      if (!functions || typeof functions !== 'object') {
+        throw new Error('Module has invalid "functions" section');
+      }
+      functionsSource = functions;
+      functionKeys = Object.keys(functions);
+    } else {
+      // Old format: functions are at root level (except 'module' key)
+      functionsSource = module;
+      functionKeys = Object.keys(module).filter((key) => key !== 'module');
+    }
 
     if (functionKeys.length === 0) {
       throw new Error('Module has no functions defined');
@@ -98,13 +123,13 @@ export class FrankaInterpreter {
     // If no function name specified, use the first one
     const targetFunction = functionName || functionKeys[0];
 
-    if (!(targetFunction in module)) {
+    if (!(targetFunction in functionsSource)) {
       throw new Error(
         `Function "${targetFunction}" not found in module. Available functions: ${functionKeys.join(', ')}`
       );
     }
 
-    const func = module[targetFunction];
+    const func = functionsSource[targetFunction];
 
     // Validate that it's a function object
     if (!func || typeof func !== 'object' || !('logic' in func)) {

@@ -5,40 +5,41 @@ module:
   name: "If-Then Chaining"
   description: "Module demonstrating chaining conditional logic"
 
-main:
-  description: "Chains multiple if-then conditions with a final else"
-  input:
-    score:
-      type: number
-      default: 85
+functions:
+  main:
+    description: "Chains multiple if-then conditions with a final else"
+    input:
+      score:
+        type: number
+        default: 85
 
-  logic:
-    let:
-      grade:
-        - if:
-            equals:
-              left:
-                get: score
-              right: 100
-          then: "A+ Perfect Score!"
-        - if:
-            equals:
-              left:
-                get: score
-              right: 90
-          then: "A Excellent!"
-        - if:
-            equals:
-              left:
-                get: score
-              right: 85
-          then: "B+ Great Job!"
-        - if:
-            equals:
-              left:
-                get: score
-              right: 80
-          then: "B Good Work!"
-        - else: "Keep Trying!"
-    in:
-      get: grade
+    logic:
+      let:
+        grade:
+          - if:
+              equals:
+                left:
+                  get: score
+                right: 100
+            then: "A+ Perfect Score!"
+          - if:
+              equals:
+                left:
+                  get: score
+                right: 90
+            then: "A Excellent!"
+          - if:
+              equals:
+                left:
+                  get: score
+                right: 85
+            then: "B+ Great Job!"
+          - if:
+              equals:
+                left:
+                  get: score
+                right: 80
+            then: "B Good Work!"
+          - else: "Keep Trying!"
+      in:
+        get: grade

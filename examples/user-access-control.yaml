@@ -3,75 +3,76 @@ module:
   name: "User Access Control"
   description: "Module for determining user access and permissions based on role and status"
 
-main:
-  description: "Determines user access and permissions based on role and status"
-  input:
-    role:
-      type: string
-      default: "admin"
-    is_active:
-      type: boolean
-      default: true
-    requires_2fa:
-      type: boolean
-      default: true
+functions:
+  main:
+    description: "Determines user access and permissions based on role and status"
+    input:
+      role:
+        type: string
+        default: "admin"
+      is_active:
+        type: boolean
+        default: true
+      requires_2fa:
+        type: boolean
+        default: true
 
-  output:
-    access_granted:
-      type: boolean
-    permission_level:
-      type: string
-    message:
-      type: string
-    requires_verification:
-      type: boolean
+    output:
+      access_granted:
+        type: boolean
+      permission_level:
+        type: string
+      message:
+        type: string
+      requires_verification:
+        type: boolean
 
-  logic:
-    if:
-      get: is_active
-    then:
-      # Active users - set base access
-      - set:
-          access_granted: true
-      # Determine permissions based on role
-      - if:
-          equals:
-            left:
-              get: role
-            right: "admin"
-        then:
-          # Admin users
-          - set:
-              permission_level: "full"
-          # Check if 2FA is required
-          - if:
-              get: requires_2fa
-            then:
-              set:
-                message: "Admin access - 2FA verification required"
-                requires_verification: true
-            else:
-              set:
-                message: "Admin access granted"
-                requires_verification: false
-        else:
-          # Regular users
-          - set:
-              permission_level: "standard"
-          - if:
-              get: requires_2fa
-            then:
-              set:
-                message: "Standard access - 2FA verification required"
-                requires_verification: true
-            else:
-              set:
-                message: "Standard access granted"
-                requires_verification: false
-    else:
-      # Inactive users - deny access
-      set:
-        access_granted: false
-        permission_level: "none"
-        message: "Account is inactive"
-        requires_verification: false
+    logic:
+      if:
+        get: is_active
+      then:
+        # Active users - set base access
+        - set:
+            access_granted: true
+        # Determine permissions based on role
+        - if:
+            equals:
+              left:
+                get: role
+              right: "admin"
+          then:
+            # Admin users
+            - set:
+                permission_level: "full"
+            # Check if 2FA is required
+            - if:
+                get: requires_2fa
+              then:
+                set:
+                  message: "Admin access - 2FA verification required"
+                  requires_verification: true
+              else:
+                set:
+                  message: "Admin access granted"
+                  requires_verification: false
+          else:
+            # Regular users
+            - set:
+                permission_level: "standard"
+            - if:
+                get: requires_2fa
+              then:
+                set:
+                  message: "Standard access - 2FA verification required"
+                  requires_verification: true
+              else:
+                set:
+                  message: "Standard access granted"
+                  requires_verification: false
+      else:
+        # Inactive users - deny access
+        set:
+          access_granted: false
+          permission_level: "none"
+          message: "Account is inactive"
+          requires_verification: false

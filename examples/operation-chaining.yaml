@@ -5,46 +5,47 @@ module:
   name: "Operation Chaining"
   description: "Module demonstrating chaining operations like Elm's pipe operator (|>)"
 
-main:
-  description: "Chains multiple string operations together"
-  input:
-    greeting:
-      type: string
-      default: "hello"
-    name:
-      type: string
-      default: "world"
+functions:
+  main:
+    description: "Chains multiple string operations together"
+    input:
+      greeting:
+        type: string
+        default: "hello"
+      name:
+        type: string
+        default: "world"
 
-  logic:
-    let:
-      # Simple chain: get -> uppercase -> concat
-      simple_chain:
-        - get: greeting
-        - uppercase
-        - concat: "!"
-      
-      # Chain with multiple operations
-      multi_chain:
-        - get: greeting
-        - uppercase
-        - concat:
-            - ", "
-            - get: name
-        - concat: "!"
-      
-      # Chain with substring
-      sub_chain:
-        - get: multi_chain
-        - substring:
-            start: 0
-            end: 12
-      
-      # Final message combining chains
-      final:
-        - get: sub_chain
-        - lowercase
-        - concat:
-            - "\n"
-            - get: multi_chain
-    in:
-      get: final
+    logic:
+      let:
+        # Simple chain: get -> uppercase -> concat
+        simple_chain:
+          - get: greeting
+          - uppercase
+          - concat: "!"
+        
+        # Chain with multiple operations
+        multi_chain:
+          - get: greeting
+          - uppercase
+          - concat:
+              - ", "
+              - get: name
+          - concat: "!"
+        
+        # Chain with substring
+        sub_chain:
+          - get: multi_chain
+          - substring:
+              start: 0
+              end: 12
+        
+        # Final message combining chains
+        final:
+          - get: sub_chain
+          - lowercase
+          - concat:
+              - "\n"
+              - get: multi_chain
+      in:
+        get: final

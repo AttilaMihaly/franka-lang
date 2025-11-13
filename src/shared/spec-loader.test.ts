@@ -83,7 +83,7 @@ describe('spec-loader', () => {
       const helloWorld = spec.examples.find((ex) => ex.name === 'Hello World');
       expect(helloWorld).toBeDefined();
       expect(helloWorld?.code).toContain('module:');
-      expect(helloWorld?.code).toContain('main:');
+      expect(helloWorld?.code).toContain('functions:');
       expect(helloWorld?.code).toContain('logic:');
     });
 
@@ -97,11 +97,11 @@ describe('spec-loader', () => {
       expect(moduleKey).toBeDefined();
       expect(moduleKey?.required).toBe(true);
 
-      const functionKey = spec.syntax.module_structure.root_keys.find(
-        (k) => k.name === 'function_name'
+      const functionsKey = spec.syntax.module_structure.root_keys.find(
+        (k) => k.name === 'functions'
       );
-      expect(functionKey).toBeDefined();
-      expect(functionKey?.required).toBe(true);
+      expect(functionsKey).toBeDefined();
+      expect(functionsKey?.required).toBe(true);
     });
   });
 

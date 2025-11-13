@@ -5,44 +5,45 @@ module:
   name: "Conditional Outputs"
   description: "Module demonstrating conditional output setting at different if/else branches"
 
-main:
-  description: "Sets outputs conditionally at different if/else branches"
-  input:
-    score:
-      type: number
-      default: 85
+functions:
+  main:
+    description: "Sets outputs conditionally at different if/else branches"
+    input:
+      score:
+        type: number
+        default: 85
 
-  output:
-    grade:
-      type: string
-    passed:
-      type: boolean
-    message:
-      type: string
+    output:
+      grade:
+        type: string
+      passed:
+        type: boolean
+      message:
+        type: string
 
-  logic:
-    - if:
-        equals:
-          left:
-            get: score
-          right: 100
-      then:
-        set:
-          grade: "A+"
-          passed: true
-          message: "Perfect score!"
-    - if:
-        equals:
-          left:
-            get: score
-          right: 85
-      then:
-        set:
-          grade: "B+"
-          passed: true
-          message: "Great job!"
-    - else:
-        set:
-          grade: "F"
-          passed: false
-          message: "Better luck next time"
+    logic:
+      - if:
+          equals:
+            left:
+              get: score
+            right: 100
+        then:
+          set:
+            grade: "A+"
+            passed: true
+            message: "Perfect score!"
+      - if:
+          equals:
+            left:
+              get: score
+            right: 85
+        then:
+          set:
+            grade: "B+"
+            passed: true
+            message: "Great job!"
+      - else:
+          set:
+            grade: "F"
+            passed: false
+            message: "Better luck next time"

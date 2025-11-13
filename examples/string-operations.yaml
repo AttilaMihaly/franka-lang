@@ -5,34 +5,35 @@ module:
   name: "String Operations"
   description: "Module demonstrating string concatenation and transformation"
 
-main:
-  description: "Demonstrates string concatenation, uppercase, and lowercase operations"
-  input:
-    greeting:
-      type: string
-      default: "Hello"
-    name:
-      type: string
-      default: "World"
+functions:
+  main:
+    description: "Demonstrates string concatenation, uppercase, and lowercase operations"
+    input:
+      greeting:
+        type: string
+        default: "Hello"
+      name:
+        type: string
+        default: "World"
 
-  logic:
-    let:
-      message:
+    logic:
+      let:
+        message:
+          concat:
+            - get: greeting
+            - ", "
+            - get: name
+            - "!"
+        upper_message:
+          uppercase:
+            get: message
+        lower_message:
+          lowercase:
+            get: message
+      in:
         concat:
-          - get: greeting
-          - ", "
-          - get: name
-          - "!"
-      upper_message:
-        uppercase:
-          get: message
-      lower_message:
-        lowercase:
-          get: message
-    in:
-      concat:
-        - get: message
-        - "\n"
-        - get: upper_message
-        - "\n"
-        - get: lower_message
+          - get: message
+          - "\n"
+          - get: upper_message
+          - "\n"
+          - get: lower_message

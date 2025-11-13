@@ -5,48 +5,49 @@ module:
   name: "Boolean Logic"
   description: "Module demonstrating boolean operations"
 
-main:
-  description: "Demonstrates AND, OR, NOT operations with conditional logic"
-  input:
-    is_valid:
-      type: boolean
-      default: true
-    is_admin:
-      type: boolean
-      default: false
+functions:
+  main:
+    description: "Demonstrates AND, OR, NOT operations with conditional logic"
+    input:
+      is_valid:
+        type: boolean
+        default: true
+      is_admin:
+        type: boolean
+        default: false
 
-  logic:
-    let:
-      can_access:
-        and:
-          - get: is_valid
-          - get: is_admin
-      access_message:
-        if:
-          get: can_access
-        then: "Access granted"
-        else: "Access denied"
-      can_view:
-        or:
-          - get: is_valid
-          - get: is_admin
-      view_message:
-        if:
-          get: can_view
-        then: "You can view the content"
-        else: "You cannot view the content"
-      is_guest:
-        not:
-          get: is_admin
-      guest_message:
-        if:
-          get: is_guest
-        then: "Welcome, guest!"
-        else: ""
-    in:
-      concat:
-        - get: access_message
-        - "\n"
-        - get: view_message
-        - "\n"
-        - get: guest_message
+    logic:
+      let:
+        can_access:
+          and:
+            - get: is_valid
+            - get: is_admin
+        access_message:
+          if:
+            get: can_access
+          then: "Access granted"
+          else: "Access denied"
+        can_view:
+          or:
+            - get: is_valid
+            - get: is_admin
+        view_message:
+          if:
+            get: can_view
+          then: "You can view the content"
+          else: "You cannot view the content"
+        is_guest:
+          not:
+            get: is_admin
+        guest_message:
+          if:
+            get: is_guest
+          then: "Welcome, guest!"
+          else: ""
+      in:
+        concat:
+          - get: access_message
+          - "\n"
+          - get: view_message
+          - "\n"
+          - get: guest_message

@@ -5,26 +5,27 @@ module:
   name: "Single Output"
   description: "Module with a single unnamed output"
 
-main:
-  description: "Function with a single unnamed output"
-  input:
-    greeting:
-      type: string
-      default: "Hello"
-    name:
-      type: string
-      default: "World"
+functions:
+  main:
+    description: "Function with a single unnamed output"
+    input:
+      greeting:
+        type: string
+        default: "Hello"
+      name:
+        type: string
+        default: "World"
 
-  output:
-    type: string
+    output:
+      type: string
 
-  logic:
-    let:
-      message:
-        concat:
-          - get: greeting
-          - ", "
-          - get: name
-          - "!"
-    in:
-      get: message
+    logic:
+      let:
+        message:
+          concat:
+            - get: greeting
+            - ", "
+            - get: name
+            - "!"
+      in:
+        get: message

@@ -5,40 +5,41 @@ module:
   name: "Nested Output Setting"
   description: "Module demonstrating setting outputs at non-leaf nodes"
 
-main:
-  description: "Sets outputs at non-leaf nodes and have them propagate to leaves"
-  input:
-    cond1:
-      type: boolean
-      default: true
-    cond2:
-      type: boolean
-      default: true
+functions:
+  main:
+    description: "Sets outputs at non-leaf nodes and have them propagate to leaves"
+    input:
+      cond1:
+        type: boolean
+        default: true
+      cond2:
+        type: boolean
+        default: true
 
-  output:
-    foo:
-      type: number
-    bar:
-      type: string
+    output:
+      foo:
+        type: number
+      bar:
+        type: string
 
-  logic:
-    if:
-      get: cond1
-    then:
-      # Set foo at non-leaf level - it will propagate to all leaves under this branch
-      - set:
-          foo: 1
-      # Then set bar based on cond2
-      - if:
-          get: cond2
-        then:
-          set:
-            bar: "A"
-        else:
-          set:
-            bar: "B"
-    else:
-      # Set both outputs at leaf level
-      set:
-        foo: 2
-        bar: "C"
+    logic:
+      if:
+        get: cond1
+      then:
+        # Set foo at non-leaf level - it will propagate to all leaves under this branch
+        - set:
+            foo: 1
+        # Then set bar based on cond2
+        - if:
+            get: cond2
+          then:
+            set:
+              bar: "A"
+          else:
+            set:
+              bar: "B"
+      else:
+        # Set both outputs at leaf level
+        set:
+          foo: 2
+          bar: "C"

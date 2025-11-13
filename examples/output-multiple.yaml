@@ -5,31 +5,32 @@ module:
   name: "Multiple Outputs"
   description: "Module with multiple named outputs"
 
-main:
-  description: "Function with multiple named outputs"
-  input:
-    value:
-      type: number
-      default: 42
+functions:
+  main:
+    description: "Function with multiple named outputs"
+    input:
+      value:
+        type: number
+        default: 42
 
-  output:
-    result:
-      type: string
-    matches_default:
-      type: boolean
-    original:
-      type: number
-
-  logic:
-    set:
+    output:
       result:
-        concat:
-          - "The value is "
-          - get: value
+        type: string
       matches_default:
-        equals:
-          left:
-            get: value
-          right: 42
+        type: boolean
       original:
-        get: value
+        type: number
+
+    logic:
+      set:
+        result:
+          concat:
+            - "The value is "
+            - get: value
+        matches_default:
+          equals:
+            left:
+              get: value
+            right: 42
+        original:
+          get: value

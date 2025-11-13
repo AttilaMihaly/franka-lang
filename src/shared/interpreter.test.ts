@@ -1,4 +1,4 @@
-import { FrankaInterpreter } from './interpreter';
+import { FrankaInterpreter, FrankaModule } from './interpreter';
 import * as path from 'path';
 
 describe('FrankaInterpreter', () => {
@@ -1160,6 +1160,111 @@ describe('FrankaInterpreter', () => {
       // Single element arrays are not treated as chains
       expect(() => interpreter.execute(program)).toThrow(
         'Arrays cannot be used as standalone logic'
+      );
+    });
+  });
+
+  describe('module format with functions section', () => {
+    it('should support new format with functions section', () => {
+      const module = {
+        module: {
+          name: 'Test Module',
+          description: 'A test module',
+        },
+        functions: {
+          main: {
+            description: 'Main function',
+            logic: 'Hello from functions section!',
+          },
+          helper: {
+            description: 'Helper function',
+            logic: 'Helper output',
+          },
+        },
+      };
+
+      const func = interpreter.getFunctionFromModule(module);
+      expect(func).toBeDefined();
+      expect(func.logic).toBe('Hello from functions section!');
+    });
+
+    it('should get specific function from functions section by name', () => {
+      const module = {
+        module: {
+          name: 'Test Module',
+        },
+        functions: {
+          main: {
+            logic: 'Main logic',
+          },
+          helper: {
+            logic: 'Helper logic',
+          },
+        },
+      };
+
+      const func = interpreter.getFunctionFromModule(module, 'helper');
+      expect(func).toBeDefined();
+      expect(func.logic).toBe('Helper logic');
+    });
+
+    it('should still support old format without functions section', () => {
+      const module = {
+        module: {
+          name: 'Test Module',
+        },
+        main: {
+          description: 'Main function',
+          logic: 'Hello from old format!',
+        },
+        helper: {
+          description: 'Helper function',
+          logic: 'Helper output',
+        },
+      };
+
+      const func = interpreter.getFunctionFromModule(module);
+      expect(func).toBeDefined();
+      expect(func.logic).toBe('Hello from old format!');
+    });
+
+    it('should execute module with functions section', () => {
+      const module = {
+        module: {
+          name: 'Test Module',
+        },
+        functions: {
+          greet: {
+            input: {
+              name: {
+                type: 'string' as const,
+                default: 'World',
+              },
+            },
+            logic: {
+              concat: ['Hello, ', { get: 'name' }, '!'],
+            },
+          },
+        },
+      };
+
+      const func = interpreter.getFunctionFromModule(module, 'greet');
+      const program = interpreter.functionToProgram(module, func, 'greet');
+      const result = interpreter.execute(program);
+
+      expect(result).toBe('Hello, World!');
+    });
+
+    it('should throw error if functions section is invalid', () => {
+      const module = {
+        module: {
+          name: 'Test Module',
+        },
+        functions: 'invalid',
+      } as unknown as FrankaModule;
+
+      expect(() => interpreter.getFunctionFromModule(module)).toThrow(
+        'Module has invalid "functions" section'
       );
     });
   });

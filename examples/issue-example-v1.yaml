@@ -5,37 +5,38 @@ module:
   name: "Issue Example"
   description: "Module demonstrating setting foo at non-leaf level"
 
-version1:
-  description: "Setting foo at non-leaf level"
-  input:
-    cond1:
-      type: boolean
-      default: true
-    cond2:
-      type: boolean
-      default: false
+functions:
+  version1:
+    description: "Setting foo at non-leaf level"
+    input:
+      cond1:
+        type: boolean
+        default: true
+      cond2:
+        type: boolean
+        default: false
 
-  output:
-    foo:
-      type: number
-    bar:
-      type: string
+    output:
+      foo:
+        type: number
+      bar:
+        type: string
 
-  logic:
-    if:
-      get: cond1
-    then:
-      - set:
-          foo: 1
-      - if:
-          get: cond2
-        then:
-          set:
-            bar: "A"
-        else:
-          set:
-            bar: "B"
-    else:
-      set:
-        foo: 2
-        bar: "C"
+    logic:
+      if:
+        get: cond1
+      then:
+        - set:
+            foo: 1
+        - if:
+            get: cond2
+          then:
+            set:
+              bar: "A"
+          else:
+            set:
+              bar: "B"
+      else:
+        set:
+          foo: 2
+          bar: "C"
