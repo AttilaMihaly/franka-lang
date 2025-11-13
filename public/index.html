@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Franka Module Browser</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: #f5f5f5;
+        }
+
+        #root {
+            min-height: 100vh;
+        }
+
+        .app {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            margin: -20px -20px 20px -20px;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #bdc3c7;
+            font-size: 14px;
+        }
+
+        .breadcrumb {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .breadcrumb a {
+            color: #3498db;
+            text-decoration: none;
+            margin-right: 5px;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb span {
+            color: #7f8c8d;
+            margin: 0 5px;
+        }
+
+        .directory-list {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .directory-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #ecf0f1;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .directory-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .directory-item:last-child {
+            border-bottom: none;
+        }
+
+        .directory-item.disabled {
+            cursor: default;
+            opacity: 0.5;
+        }
+
+        .directory-item.disabled:hover {
+            background-color: white;
+        }
+
+        .item-icon {
+            margin-right: 12px;
+            font-size: 20px;
+        }
+
+        .item-name {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .module-view {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        .module-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .module-header h2 {
+            color: #2c3e50;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .module-header .description {
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+
+        .function-section {
+            margin-bottom: 30px;
+        }
+
+        .function-card {
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #fafafa;
+        }
+
+        .function-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .function-name {
+            font-size: 22px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .function-description {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .function-details {
+            background: white;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .function-details h4 {
+            color: #34495e;
+            font-size: 14px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .logic-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .test-cases {
+            margin-top: 15px;
+        }
+
+        .test-case {
+            background: white;
+            border-left: 4px solid #3498db;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .test-case .test-description {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .test-case .test-details {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 8px 15px;
+            font-size: 14px;
+        }
+
+        .test-case .test-label {
+            color: #7f8c8d;
+            font-weight: 600;
+        }
+
+        .test-case .test-value {
+            color: #2c3e50;
+            font-family: 'Courier New', monospace;
+        }
+
+        .no-tests {
+            color: #95a5a6;
+            font-style: italic;
+            padding: 15px;
+            text-align: center;
+            background: #ecf0f1;
+            border-radius: 6px;
+        }
+
+        .visualization {
+            background: white;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .visualization h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .function-graph {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .function-node {
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .function-node-header {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .function-node-body {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .test-nodes {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+            padding-left: 20px;
+        }
+
+        .test-node {
+            border: 2px solid #2ecc71;
+            border-radius: 6px;
+            padding: 10px;
+            background: #d5f4e6;
+            font-size: 12px;
+        }
+
+        .test-node-title {
+            font-weight: 600;
+            color: #27ae60;
+            margin-bottom: 5px;
+        }
+
+        .test-node-content {
+            color: #2c3e50;
+        }
+
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .back-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .back-button:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div class="app">
+            <div class="header">
+                <h1>🔧 Franka Module Browser</h1>
+                <p>Browse and explore Franka modules and their test cases</p>
+            </div>
+            <div id="content" class="loading">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let state = {
+            currentPath: '',
+            view: 'directory',
+            directoryData: null,
+            moduleData: null,
+            loading: true,
+            error: null
+        };
+
+        // Utility function to escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Utility function to escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Format values for display
+        function formatValue(value) {
+            if (typeof value === 'object' && value !== null) {
+                return JSON.stringify(value, null, 2);
+            }
+            return String(value);
+        }
+
+        // Render functions
+        function render() {
+            const content = document.getElementById('content');
+            
+            if (state.view === 'directory') {
+                renderDirectory(content);
+            } else if (state.view === 'module') {
+                renderModule(content);
+            }
+        }
+
+        function renderDirectory(container) {
+            if (state.loading) {
+                container.innerHTML = '<div class="loading">Loading directory...</div>';
+                return;
+            }
+
+            if (state.error) {
+                container.innerHTML = `<div class="error">Error: ${escapeHtml(state.error)}</div>`;
+                return;
+            }
+
+            if (!state.directoryData) {
+                return;
+            }
+
+            const pathParts = state.currentPath ? state.currentPath.split('/').filter(Boolean) : [];
+            
+            let breadcrumbHtml = '<div class="breadcrumb">';
+            breadcrumbHtml += '<a href="#" data-path="">🏠 Home</a>';
+            pathParts.forEach((part, index) => {
+                const path = pathParts.slice(0, index + 1).join('/');
+                breadcrumbHtml += `<span>/</span><a href="#" data-path="${escapeHtml(path)}">${escapeHtml(part)}</a>`;
+            });
+            breadcrumbHtml += '</div>';
+
+            let listHtml = '<div class="directory-list">';
+            if (state.directoryData.entries.length === 0) {
+                listHtml += '<div class="directory-item disabled"><span class="item-name">No modules or directories found</span></div>';
+            } else {
+                state.directoryData.entries.forEach(item => {
+                    const icon = item.type === 'directory' ? '📁' : '📄';
+                    listHtml += `<div class="directory-item" data-type="${item.type}" data-path="${escapeHtml(item.path)}">`;
+                    listHtml += `<span class="item-icon">${icon}</span>`;
+                    listHtml += `<span class="item-name">${escapeHtml(item.name)}</span>`;
+                    listHtml += '</div>';
+                });
+            }
+            listHtml += '</div>';
+
+            container.innerHTML = breadcrumbHtml + listHtml;
+
+            // Add event listeners
+            container.querySelectorAll('.breadcrumb a').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const path = e.target.dataset.path;
+                    navigateTo(path);
+                });
+            });
+
+            container.querySelectorAll('.directory-item:not(.disabled)').forEach(item => {
+                item.addEventListener('click', () => {
+                    const type = item.dataset.type;
+                    const path = item.dataset.path;
+                    if (type === 'directory') {
+                        navigateTo(path);
+                    } else if (type === 'file') {
+                        loadModule(path);
+                    }
+                });
+            });
+        }
+
+        function renderModule(container) {
+            if (state.loading) {
+                container.innerHTML = '<div class="loading">Loading module...</div>';
+                return;
+            }
+
+            if (state.error) {
+                const html = `
+                    <button class="back-button" onclick="backToDirectory()">← Back to Directory</button>
+                    <div class="error">Error: ${escapeHtml(state.error)}</div>
+                `;
+                container.innerHTML = html;
+                return;
+            }
+
+            if (!state.moduleData) {
+                return;
+            }
+
+            const { module, specs } = state.moduleData;
+
+            let html = '<button class="back-button" onclick="backToDirectory()">← Back to Directory</button>';
+            html += '<div class="module-view">';
+            html += '<div class="module-header">';
+            html += `<h2>${escapeHtml(module.module.name)}</h2>`;
+            if (module.module.description) {
+                html += `<p class="description">${escapeHtml(module.module.description)}</p>`;
+            }
+            html += '</div>';
+
+            html += '<div class="function-section"><h3>Functions</h3>';
+            Object.entries(module.functions).forEach(([funcName, funcDef]) => {
+                const tests = specs?.functions[funcName]?.tests || [];
+                html += renderFunctionCard(funcName, funcDef, tests);
+            });
+            html += '</div>';
+
+            html += renderVisualization(module, specs);
+            html += '</div>';
+
+            container.innerHTML = html;
+        }
+
+        function renderFunctionCard(name, func, tests) {
+            let html = '<div class="function-card">';
+            html += '<div class="function-header">';
+            html += `<div class="function-name">⚙️ ${escapeHtml(name)}</div>`;
+            html += '</div>';
+
+            if (func.description) {
+                html += `<div class="function-description">${escapeHtml(func.description)}</div>`;
+            }
+
+            html += '<div class="function-details">';
+            html += '<h4>Logic</h4>';
+            html += `<div class="logic-block">${escapeHtml(formatValue(func.logic))}</div>`;
+            html += '</div>';
+
+            if (func.input) {
+                html += '<div class="function-details">';
+                html += '<h4>Input Parameters</h4>';
+                html += `<div class="logic-block">${escapeHtml(formatValue(func.input))}</div>`;
+                html += '</div>';
+            }
+
+            if (func.output) {
+                html += '<div class="function-details">';
+                html += '<h4>Output</h4>';
+                html += `<div class="logic-block">${escapeHtml(formatValue(func.output))}</div>`;
+                html += '</div>';
+            }
+
+            html += '<div class="test-cases">';
+            html += `<h4>Test Cases (${tests.length})</h4>`;
+            if (tests.length === 0) {
+                html += '<div class="no-tests">No test cases defined</div>';
+            } else {
+                tests.forEach((test, index) => {
+                    html += '<div class="test-case">';
+                    html += `<div class="test-description">${escapeHtml(test.description || `Test ${index + 1}`)}</div>`;
+                    html += '<div class="test-details">';
+                    if (test.input) {
+                        html += '<span class="test-label">Input:</span>';
+                        html += `<span class="test-value">${escapeHtml(formatValue(test.input))}</span>`;
+                    }
+                    html += '<span class="test-label">Expected Output:</span>';
+                    html += `<span class="test-value">${escapeHtml(formatValue(test.expectedOutput))}</span>`;
+                    html += '</div></div>';
+                });
+            }
+            html += '</div>';
+
+            html += '</div>';
+            return html;
+        }
+
+        function renderVisualization(module, specs) {
+            let html = '<div class="visualization">';
+            html += '<h3>📊 Function and Test Visualization</h3>';
+            html += '<div class="function-graph">';
+
+            Object.entries(module.functions).forEach(([funcName, funcDef]) => {
+                const tests = specs?.functions[funcName]?.tests || [];
+                html += '<div>';
+                html += '<div class="function-node">';
+                html += `<div class="function-node-header">Function: ${escapeHtml(funcName)}</div>`;
+                html += `<div class="function-node-body">${escapeHtml(funcDef.description || 'No description')}</div>`;
+                html += '</div>';
+
+                if (tests.length > 0) {
+                    html += '<div class="test-nodes">';
+                    tests.forEach((test, index) => {
+                        html += '<div class="test-node">';
+                        html += `<div class="test-node-title">Test ${index + 1}</div>`;
+                        html += `<div class="test-node-content">${escapeHtml(test.description || 'No description')}</div>`;
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                }
+                html += '</div>';
+            });
+
+            html += '</div></div>';
+            return html;
+        }
+
+        // API functions
+        async function loadDirectory(path) {
+            state.loading = true;
+            state.error = null;
+            render();
+
+            try {
+                const response = await fetch(`/api/browse?path=${encodeURIComponent(path)}`);
+                if (!response.ok) {
+                    throw new Error('Failed to load directory');
+                }
+                state.directoryData = await response.json();
+            } catch (err) {
+                state.error = err.message;
+            } finally {
+                state.loading = false;
+                render();
+            }
+        }
+
+        async function loadModule(path) {
+            state.loading = true;
+            state.error = null;
+            state.view = 'module';
+            render();
+
+            try {
+                const response = await fetch(`/api/module?path=${encodeURIComponent(path)}`);
+                if (!response.ok) {
+                    throw new Error('Failed to load module');
+                }
+                state.moduleData = await response.json();
+            } catch (err) {
+                state.error = err.message;
+            } finally {
+                state.loading = false;
+                render();
+            }
+        }
+
+        function navigateTo(path) {
+            state.currentPath = path;
+            state.view = 'directory';
+            loadDirectory(path);
+        }
+
+        function backToDirectory() {
+            state.view = 'directory';
+            state.moduleData = null;
+            render();
+        }
+
+        // Initialize
+        loadDirectory('');
+    </script>
+</body>
+</html>

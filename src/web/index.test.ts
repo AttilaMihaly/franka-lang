@@ -8,6 +8,7 @@ describe('Web Server with Commander', () => {
     expect(output).toContain('Usage: franka-web');
     expect(output).toContain('Franka Web Server');
     expect(output).toContain('-p, --port');
+    expect(output).toContain('-d, --dir');
   });
 
   test('should display version', () => {
