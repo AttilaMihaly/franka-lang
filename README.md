@@ -82,24 +82,9 @@ npm run cli -- check examples/hello.yaml
 
 #### Module Testing with Spec Files
 
-Franka supports automatic testing through spec files. Create a file named `<filename>.spec.yaml` alongside your program or module file.
+Franka supports automatic testing through spec files. Create a file named `<filename>.spec.yaml` alongside your module file.
 
-##### Legacy Format (Single Function)
-
-For single-function programs or when testing one function at a time:
-
-```yaml
-tests:
-  - description: "Test with default inputs"
-    expectedOutput: "Expected result"
-    
-  - description: "Test with custom inputs"
-    input:
-      variable: "custom value"
-    expectedOutput: "Different result"
-```
-
-##### Multi-Function Format (Recommended for Modules)
+##### Spec File Format
 
 For modules with multiple functions, group tests by function name:
 
@@ -340,8 +325,7 @@ main:
 
 #### Let Bindings
 - `let`: Define local variable bindings with lexical scoping
-  - Supports flat syntax where `let` and `in` are at the same indentation level (recommended)
-  - Also supports legacy nested syntax for backward compatibility
+  - Uses flat syntax where `let` and `in` are at the same indentation level
   - Each binding defines a variable name and its value
   - The `in` logic specifies what to evaluate with those bindings
   - Bindings can reference earlier bindings in the same let block
@@ -372,10 +356,9 @@ main:
 
 #### Control Operations
 - `if`: Conditional logic that returns a value based on condition
-  - Supports three syntax variants:
-    1. **Nested syntax** (legacy): `if: { condition: <expr>, then: <expr>, else: <expr> }`
-    2. **Flat syntax** (recommended): `if: <expr>`, `then: <expr>`, `else: <expr>` on same level
-    3. **Chaining syntax**: List of `if`/`then` pairs with final `else` for if-elif-else patterns
+  - Supports two syntax variants:
+    1. **Flat syntax**: `if: <expr>`, `then: <expr>`, `else: <expr>` on same level
+    2. **Chaining syntax**: List of `if`/`then` pairs with final `else` for if-elif-else patterns
   - The condition is evaluated, and returns `then` logic if true, `else` logic if false
   - The `else` branch is optional
 

@@ -492,32 +492,12 @@ tooling:
         usage: "franka version"
   
   testing:
-    description: "Testing framework for Franka programs and modules"
+    description: "Testing framework for Franka modules"
     spec_file_format:
-      description: "Spec files contain test cases for functions. Named <filename>.spec.yaml alongside the program/module file."
-      legacy_format:
-        description: "Legacy format for single-function programs or modules (backward compatible)"
-        structure: |
-          tests:
-            - description: "Test description"
-              input:
-                varname: value
-              expectedOutput: expected_result
-        example: |
-          tests:
-            - description: "Default greeting"
-              expectedOutput: "Hello, World!"
-            - description: "Custom greeting"
-              input:
-                name: "Franka"
-              expectedOutput: "Hello, Franka!"
-        notes:
-          - "Tests at root level without function grouping"
-          - "Works with both program and module files"
-          - "When used with modules, tests apply to the specified function (via -f flag) or first function"
+      description: "Spec files contain test cases for functions. Named <filename>.spec.yaml alongside the module file."
       
-      multi_function_format:
-        description: "New format for testing multiple functions in a module (recommended for modules)"
+      format:
+        description: "Spec file format for testing multiple functions in a module"
         structure: |
           functions:
             function_name:

@@ -64,24 +64,24 @@ export class FrankaInterpreter {
   loadModule(filePath: string): FrankaModule {
     const fileContents = fs.readFileSync(filePath, 'utf8');
     const module = yaml.load(fileContents, { schema: yaml.CORE_SCHEMA }) as FrankaModule;
-    
+
     // Validate module structure
     if (!module || typeof module !== 'object') {
       throw new Error('Invalid module file: must be a YAML object');
     }
-    
+
     if (!('module' in module)) {
       throw new Error('Invalid module file: must contain "module" section');
     }
-    
+
     if (!('functions' in module) || !module.functions) {
       throw new Error('Invalid module file: must contain "functions" section');
     }
-    
+
     if (typeof module.functions !== 'object') {
       throw new Error('Invalid module file: "functions" must be an object');
     }
-    
+
     return module;
   }
 
