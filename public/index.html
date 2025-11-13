@@ -1052,6 +1052,8 @@
             state.loading = true;
             state.error = null;
             state.view = 'module';
+            // Update URL hash
+            window.location.hash = `#/module/${path}`;
             render();
 
             try {
@@ -1071,17 +1073,69 @@
         function navigateTo(path) {
             state.currentPath = path;
             state.view = 'directory';
+            // Update URL hash
+            window.location.hash = path ? `#/browse/${path}` : '#/';
             loadDirectory(path);
         }
 
         function backToDirectory() {
             state.view = 'directory';
             state.moduleData = null;
+            // Update URL hash to current path
+            window.location.hash = state.currentPath ? `#/browse/${state.currentPath}` : '#/';
             render();
         }
 
-        // Initialize
-        loadDirectory('');
+        // Parse URL hash and return view state
+        function parseHash() {
+            const hash = window.location.hash.slice(1); // Remove leading #
+            
+            if (!hash || hash === '/') {
+                return { view: 'directory', path: '' };
+            }
+            
+            if (hash.startsWith('/browse/')) {
+                const path = hash.slice(8); // Remove '/browse/'
+                return { view: 'directory', path: path };
+            }
+            
+            if (hash.startsWith('/module/')) {
+                const path = hash.slice(8); // Remove '/module/'
+                return { view: 'module', path: path };
+            }
+            
+            // Default to home if hash is unrecognized
+            return { view: 'directory', path: '' };
+        }
+
+        // Handle browser back/forward buttons
+        window.addEventListener('hashchange', () => {
+            const parsed = parseHash();
+            
+            if (parsed.view === 'directory') {
+                state.currentPath = parsed.path;
+                state.view = 'directory';
+                loadDirectory(parsed.path);
+            } else if (parsed.view === 'module') {
+                loadModule(parsed.path);
+            }
+        });
+
+        // Initialize from URL hash
+        function initialize() {
+            const parsed = parseHash();
+            
+            if (parsed.view === 'directory') {
+                state.currentPath = parsed.path;
+                state.view = 'directory';
+                loadDirectory(parsed.path);
+            } else if (parsed.view === 'module') {
+                state.currentPath = parsed.path.split('/').slice(0, -1).join('/');
+                loadModule(parsed.path);
+            }
+        }
+
+        initialize();
     </script>
 </body>
 </html>
