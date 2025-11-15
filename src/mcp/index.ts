@@ -178,7 +178,13 @@ async function main() {
   console.error('  - franka://spec/complete: Complete specification');
 }
 
-main().catch((error) => {
-  console.error('Fatal error:', error);
-  process.exit(1);
-});
+// Export for testing
+export { main };
+
+// Only run main if this file is executed directly
+if (require.main === module) {
+  main().catch((error) => {
+    console.error('Fatal error:', error);
+    process.exit(1);
+  });
+}

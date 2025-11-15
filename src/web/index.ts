@@ -235,4 +235,10 @@ function main() {
   program.parse(process.argv);
 }
 
-main();
+// Export for testing
+export { app, main };
+
+// Only run main if this file is executed directly
+if (require.main === module) {
+  main();
+}

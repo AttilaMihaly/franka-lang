@@ -140,4 +140,20 @@ describe('MCP Server', () => {
     expect(spec.syntax.operations).toBeDefined();
     expect(spec.examples).toBeDefined();
   });
+
+  test('spec should have operations for get-keywords tool', () => {
+    const spec = loadLanguageSpec();
+    expect(spec.syntax.operations.string).toBeDefined();
+    expect(spec.syntax.operations.boolean).toBeDefined();
+    expect(spec.syntax.operations.control).toBeDefined();
+    expect(Array.isArray(spec.syntax.operations.string)).toBe(true);
+    expect(Array.isArray(spec.syntax.operations.boolean)).toBe(true);
+    expect(Array.isArray(spec.syntax.operations.control)).toBe(true);
+  });
+
+  test('spec should have examples for resources', () => {
+    const spec = loadLanguageSpec();
+    expect(Array.isArray(spec.examples)).toBe(true);
+    expect(spec.examples.length).toBeGreaterThan(0);
+  });
 });

@@ -10,4 +10,6 @@ module.exports = {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html', 'json-summary']
+  // Note: Coverage threshold enforcement is handled by scripts/check-coverage.js
+  // Jest's built-in threshold has issues with path-based calculations
 };

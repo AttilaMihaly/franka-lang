@@ -13,23 +13,18 @@ function runFile(filePath: string, functionName?: string) {
   }
 
   if (!fs.existsSync(filePath)) {
-    console.error(`Error: File not found: ${filePath}`);
-    process.exit(1);
+    throw new Error(`File not found: ${filePath}`);
   }
 
-  try {
-    const interpreter = new FrankaInterpreter();
-    const result = interpreter.executeFile(filePath, functionName);
+  const interpreter = new FrankaInterpreter();
+  const result = interpreter.executeFile(filePath, functionName);
 
-    console.log('\nProgram result:');
-    console.log('---------------');
-    console.log(result);
-    console.log('---------------');
-  } catch (error) {
-    console.error('Error executing program:');
-    console.error(error instanceof Error ? error.message : String(error));
-    process.exit(1);
-  }
+  console.log('\nProgram result:');
+  console.log('---------------');
+  console.log(result);
+  console.log('---------------');
+
+  return result;
 }
 
 function checkFile(filePath: string, functionName?: string) {
@@ -39,58 +34,51 @@ function checkFile(filePath: string, functionName?: string) {
   }
 
   if (!fs.existsSync(filePath)) {
-    console.error(`Error: File not found: ${filePath}`);
-    process.exit(1);
+    throw new Error(`File not found: ${filePath}`);
   }
 
   let hasErrors = false;
 
-  try {
-    const interpreter = new FrankaInterpreter();
+  const interpreter = new FrankaInterpreter();
 
-    // Load module
-    const module = interpreter.loadModule(filePath);
-    console.log('✓ Syntax is valid (Module format)');
-    console.log(`✓ Module name: ${module.module.name}`);
-    if (module.module.description) {
-      console.log(`✓ Description: ${module.module.description}`);
+  // Load module
+  const module = interpreter.loadModule(filePath);
+  console.log('✓ Syntax is valid (Module format)');
+  console.log(`✓ Module name: ${module.module.name}`);
+  if (module.module.description) {
+    console.log(`✓ Description: ${module.module.description}`);
+  }
+
+  // List all functions in the module
+  const functionNames = Object.keys(module.functions);
+  console.log(`✓ Functions: ${functionNames.length} (${functionNames.join(', ')})`);
+
+  // If a specific function was requested, check it
+  if (functionName) {
+    const func = interpreter.getFunctionFromModule(module, functionName);
+    console.log(`✓ Checking function: ${functionName}`);
+    if (func.description) {
+      console.log(`✓ Function description: ${func.description}`);
     }
-
-    // List all functions in the module
-    const functionNames = Object.keys(module.functions);
-    console.log(`✓ Functions: ${functionNames.length} (${functionNames.join(', ')})`);
-
-    // If a specific function was requested, check it
-    if (functionName) {
-      const func = interpreter.getFunctionFromModule(module, functionName);
-      console.log(`✓ Checking function: ${functionName}`);
-      if (func.description) {
-        console.log(`✓ Function description: ${func.description}`);
-      }
-      console.log(`✓ Logic: ${func.logic ? 'present' : 'missing'}`);
-      if (func.input) {
-        console.log(`✓ Inputs: ${Object.keys(func.input).length}`);
-      }
-      if (func.output) {
-        if ('type' in func.output) {
-          console.log(`✓ Output: 1 (type: ${func.output.type})`);
-        } else {
-          console.log(`✓ Outputs: ${Object.keys(func.output).length}`);
-        }
-      }
-    } else {
-      // Check all functions
-      for (const fname of functionNames) {
-        const func = module.functions[fname];
-        if (func && typeof func === 'object' && 'logic' in func) {
-          console.log(`  - ${fname}: ${func.description || 'No description'}`);
-        }
+    console.log(`✓ Logic: ${func.logic ? 'present' : 'missing'}`);
+    if (func.input) {
+      console.log(`✓ Inputs: ${Object.keys(func.input).length}`);
+    }
+    if (func.output) {
+      if ('type' in func.output) {
+        console.log(`✓ Output: 1 (type: ${func.output.type})`);
+      } else {
+        console.log(`✓ Outputs: ${Object.keys(func.output).length}`);
       }
     }
-  } catch (error) {
-    console.error('✗ Syntax error:');
-    console.error(error instanceof Error ? error.message : String(error));
-    process.exit(1);
+  } else {
+    // Check all functions
+    for (const fname of functionNames) {
+      const func = module.functions[fname];
+      if (func && typeof func === 'object' && 'logic' in func) {
+        console.log(`  - ${fname}: ${func.description || 'No description'}`);
+      }
+    }
   }
 
   // Check for spec file and run tests
@@ -140,8 +128,10 @@ function checkFile(filePath: string, functionName?: string) {
   }
 
   if (hasErrors) {
-    process.exit(1);
+    throw new Error('Checks failed');
   }
+
+  return { hasErrors };
 }
 
 function startRepl() {
@@ -151,7 +141,7 @@ function startRepl() {
   console.log('Type Ctrl+C to exit.');
 }
 
-function main() {
+export function main() {
   const spec = loadLanguageSpec();
   const version = getVersion();
 
@@ -168,7 +158,13 @@ function main() {
     .argument('<file>', 'Path to the Franka program file')
     .option('-f, --function <name>', 'Function name to execute (for module files)')
     .action((file: string, options: { function?: string }) => {
-      runFile(file, options.function);
+      try {
+        runFile(file, options.function);
+      } catch (error) {
+        console.error('Error executing program:');
+        console.error(error instanceof Error ? error.message : String(error));
+        process.exit(1);
+      }
     });
 
   program
@@ -177,7 +173,15 @@ function main() {
     .argument('<file>', 'Path to the Franka program file')
     .option('-f, --function <name>', 'Function name to check (for module files)')
     .action((file: string, options: { function?: string }) => {
-      checkFile(file, options.function);
+      try {
+        checkFile(file, options.function);
+      } catch (error) {
+        if (error instanceof Error && error.message !== 'Checks failed') {
+          console.error('✗ Syntax error:');
+          console.error(error.message);
+        }
+        process.exit(1);
+      }
     });
 
   program
@@ -190,4 +194,10 @@ function main() {
   program.parse(process.argv);
 }
 
-main();
+// Export functions for testing
+export { runFile, checkFile, startRepl };
+
+// Only run main if this file is executed directly
+if (require.main === module) {
+  main();
+}

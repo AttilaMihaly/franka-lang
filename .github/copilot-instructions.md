@@ -122,10 +122,44 @@ npm run format:check
 
 ### Test Requirements
 
-- **All tests must pass** before committing (140 tests)
+- **All tests must pass** before committing (200+ tests)
+- **Coverage must be ≥90%** - enforced by `npm run test:coverage`
 - **Add tests for new features** - Follow existing test patterns
 - **Update tests for changes** - Don't break existing tests
 - **Test edge cases** - Empty inputs, invalid data, boundary conditions
+
+### Coverage Requirements
+
+**Minimum 80% line coverage target (currently 73.54%):**
+
+- Coverage enforcement is active via `npm run test:coverage`
+- Current status: 73.54% (450/612 lines), up from 52.79% baseline
+- Target: 80% (490/612 lines)
+- Remaining work: 40 lines needed
+
+**Current coverage by module:**
+- `src/shared/`: 94.53% ⭐ (business logic - excellent coverage)
+- `src/index.ts`: 100%
+- `src/cli/`: 79.81% (integration entry point)
+- `src/mcp/`: 0% (async server with integration tests)
+- `src/web/`: 25.23% (Express server with integration tests)
+
+**To reach 80% coverage:**
+1. Add unit tests for Web server route handlers (~25 lines)
+2. Improve CLI edge case coverage (~10 lines)
+3. Push shared modules to 96% (~5 lines)
+
+**Before committing code:**
+
+```bash
+npm run test:coverage  # Check coverage (target: 80%)
+npm run build
+npm run lint
+npm run format:check
+```
+
+**Note:** Entry point files contain integration code that's better tested via E2E tests.
+The core business logic in `src/shared/` already has excellent 94.53% coverage.
 
 ## Common Patterns
 

@@ -1,5 +1,6 @@
 import { FrankaInterpreter, FrankaModule } from './interpreter';
 import * as path from 'path';
+import * as fs from 'fs';
 
 describe('FrankaInterpreter', () => {
   let interpreter: FrankaInterpreter;
@@ -1163,6 +1164,378 @@ describe('FrankaInterpreter', () => {
 
       expect(() => interpreter.getFunctionFromModule(module)).toThrow(
         'Module has no functions defined'
+      );
+    });
+
+    it('should throw error for invalid function definition', () => {
+      const module = {
+        module: {
+          name: 'Test Module',
+        },
+        functions: {
+          badFunc: 'not an object' as any,
+        },
+      } as FrankaModule;
+
+      expect(() => interpreter.getFunctionFromModule(module, 'badFunc')).toThrow(
+        'not a valid function definition'
+      );
+    });
+
+    it('should throw error when loading module without module section', () => {
+      const tempFile = path.join(__dirname, '../../tmp-no-module-section.yaml');
+      fs.writeFileSync(
+        tempFile,
+        `
+functions:
+  test:
+    logic: "hello"
+`
+      );
+
+      try {
+        expect(() => interpreter.loadModule(tempFile)).toThrow('must contain "module" section');
+      } finally {
+        if (fs.existsSync(tempFile)) {
+          fs.unlinkSync(tempFile);
+        }
+      }
+    });
+
+    it('should throw error when loading module without functions section', () => {
+      const tempFile = path.join(__dirname, '../../tmp-no-functions.yaml');
+      fs.writeFileSync(
+        tempFile,
+        `
+module:
+  name: Test
+`
+      );
+
+      try {
+        expect(() => interpreter.loadModule(tempFile)).toThrow('must contain "functions" section');
+      } finally {
+        if (fs.existsSync(tempFile)) {
+          fs.unlinkSync(tempFile);
+        }
+      }
+    });
+
+    it('should throw error when module functions is not an object', () => {
+      const tempFile = path.join(__dirname, '../../tmp-functions-not-object.yaml');
+      fs.writeFileSync(
+        tempFile,
+        `
+module:
+  name: Test
+functions: "not an object"
+`
+      );
+
+      try {
+        expect(() => interpreter.loadModule(tempFile)).toThrow('"functions" must be an object');
+      } finally {
+        if (fs.existsSync(tempFile)) {
+          fs.unlinkSync(tempFile);
+        }
+      }
+    });
+  });
+
+  describe('error handling and edge cases', () => {
+    it('should throw error for empty object in logic', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: {},
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBeNull();
+    });
+
+    it('should throw error for let without in', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: { let: { x: 5 } },
+      };
+
+      expect(() => interpreter.execute(program)).toThrow('Let structure requires "in" key');
+    });
+
+    it('should throw error for if without then or else', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: { if: true },
+      };
+
+      expect(() => interpreter.execute(program)).toThrow(
+        'If structure must include "then" or "else" key'
+      );
+    });
+
+    it('should throw error for concat with invalid args', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: { concat: 'invalid' },
+      };
+
+      expect(() => interpreter.execute(program)).toThrow(
+        'concat operation requires an array or an object with "values" property'
+      );
+    });
+
+    it('should handle concat with values property', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: { concat: { values: ['Hello', ' ', 'World'] } },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('Hello World');
+    });
+
+    it('should throw error for substring without required properties', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: { substring: { value: 'test' } },
+      };
+
+      expect(() => interpreter.execute(program)).toThrow(
+        'substring operation requires "value" and "start" properties'
+      );
+    });
+
+    it('should throw error for and with invalid args', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: { and: 'invalid' },
+      };
+
+      expect(() => interpreter.execute(program)).toThrow(
+        'and operation requires an array or an object with "values" property'
+      );
+    });
+
+    it('should handle and with values property', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: { and: { values: [true, true] } },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(true);
+    });
+
+    it('should throw error for or with invalid args', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: { or: 'invalid' },
+      };
+
+      expect(() => interpreter.execute(program)).toThrow(
+        'or operation requires an array or an object with "values" property'
+      );
+    });
+
+    it('should handle or with values property', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: { or: { values: [false, true] } },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(true);
+    });
+
+    it('should throw error for equals without left and right', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: { equals: { left: 5 } },
+      };
+
+      expect(() => interpreter.execute(program)).toThrow(
+        'equals operation requires "left" and "right" properties'
+      );
+    });
+
+    it('should handle extractValue with value property', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: { not: { value: false } },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(true);
+    });
+
+    it('should throw error for substring in chain without proper args', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: [{ get: 'message' }, { substring: 'invalid' }],
+        input: {
+          message: { type: 'string' as const, default: 'Hello World' },
+        },
+      };
+
+      expect(() => interpreter.execute(program)).toThrow(
+        'substring operation requires start and optional end parameters in chain'
+      );
+    });
+
+    it('should handle concat in chain with values property', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: [{ get: 'message' }, { concat: { values: [' additional'] } }],
+        input: {
+          message: { type: 'string' as const, default: 'Hello' },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('Hello additional');
+    });
+
+    it('should handle uppercase in chain', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: [{ get: 'message' }, 'uppercase'],
+        input: {
+          message: { type: 'string' as const, default: 'hello' },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('HELLO');
+    });
+
+    it('should handle lowercase in chain', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: [{ get: 'message' }, 'lowercase'],
+        input: {
+          message: { type: 'string' as const, default: 'HELLO' },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('hello');
+    });
+
+    it('should handle length in chain', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: [{ get: 'message' }, 'length'],
+        input: {
+          message: { type: 'string' as const, default: 'hello' },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(5);
+    });
+
+    it('should handle not in chain', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: [{ get: 'value' }, 'not'],
+        input: {
+          value: { type: 'boolean' as const, default: false },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(true);
+    });
+
+    it('should handle and in chain with array', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: [{ get: 'value' }, { and: [true, true] }],
+        input: {
+          value: { type: 'boolean' as const, default: true },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(true);
+    });
+
+    it('should handle and in chain with single value', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: [{ get: 'value' }, { and: true }],
+        input: {
+          value: { type: 'boolean' as const, default: true },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(true);
+    });
+
+    it('should handle or in chain with array', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: [{ get: 'value' }, { or: [false, true] }],
+        input: {
+          value: { type: 'boolean' as const, default: false },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(true);
+    });
+
+    it('should handle or in chain with single value', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: [{ get: 'value' }, { or: true }],
+        input: {
+          value: { type: 'boolean' as const, default: false },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(true);
+    });
+
+    it('should handle equals in chain with right property', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: [{ get: 'value' }, { equals: { right: 5 } }],
+        input: {
+          value: { type: 'number' as const, default: 5 },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(true);
+    });
+
+    it('should handle equals in chain with direct value', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: [{ get: 'value' }, { equals: 5 }],
+        input: {
+          value: { type: 'number' as const, default: 5 },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(true);
+    });
+
+    it('should throw error for unsupported operation in chain', () => {
+      const program = {
+        program: { name: 'Test' },
+        logic: [{ get: 'value' }, { unsupported: 'test' }],
+        input: {
+          value: { type: 'string' as const, default: 'hello' },
+        },
+      };
+
+      expect(() => interpreter.execute(program)).toThrow(
+        "Operation 'unsupported' is not supported in chains with arguments"
       );
     });
   });
