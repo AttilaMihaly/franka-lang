@@ -336,6 +336,12 @@ body {
 
 .verification-grid tbody tr:hover {
     background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+.verification-grid tbody tr.test-row-hovered {
+    background-color: #d4edfc;
+    box-shadow: 0 0 0 2px #3498db;
 }
 
 .verify-desc-col {

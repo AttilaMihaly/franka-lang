@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { FunctionDef, TestCase } from '../types';
 import { ExpressionTree } from './ExpressionTree';
 import { formatValue } from '../utils';
@@ -22,8 +22,41 @@ function getOutputParams(output: any): string[] {
 }
 
 export const FunctionCard: React.FC<FunctionCardProps> = ({ name, func, tests }) => {
+  const [hoveredTestIndex, setHoveredTestIndex] = useState<number | null>(null);
   const inputParams = func.input ? Object.keys(func.input) : [];
   const outputParams = getOutputParams(func.output);
+
+  // Get the input context for the logic tree
+  // If a test is hovered, use its input values; otherwise use defaults
+  const inputContext = useMemo(() => {
+    if (hoveredTestIndex !== null && tests[hoveredTestIndex]) {
+      const test = tests[hoveredTestIndex];
+      const context: Record<string, any> = {};
+
+      // Start with default values
+      if (func.input) {
+        Object.entries(func.input).forEach(([key, def]) => {
+          if (def.default !== undefined) {
+            context[key] = def.default;
+          }
+        });
+      }
+
+      // Override with test input values
+      if (test.input) {
+        Object.entries(test.input).forEach(([key, value]) => {
+          context[key] = value;
+        });
+      }
+
+      return context;
+    }
+
+    // Default: use input defaults
+    return func.input
+      ? Object.fromEntries(Object.entries(func.input).map(([name, def]) => [name, def.default]))
+      : {};
+  }, [hoveredTestIndex, tests, func.input]);
 
   return (
     <div className="function-card">
@@ -104,14 +137,9 @@ export const FunctionCard: React.FC<FunctionCardProps> = ({ name, func, tests })
       <div className="function-details">
         <h4>Logic</h4>
         <ExpressionTree
+          key={`logic-${hoveredTestIndex}`}
           expr={func.logic}
-          inputDefaults={
-            func.input
-              ? Object.fromEntries(
-                  Object.entries(func.input).map(([name, def]) => [name, def.default])
-                )
-              : {}
-          }
+          inputDefaults={inputContext}
         />
       </div>
 
@@ -141,7 +169,12 @@ export const FunctionCard: React.FC<FunctionCardProps> = ({ name, func, tests })
               </thead>
               <tbody>
                 {tests.map((test, index) => (
-                  <tr key={index}>
+                  <tr
+                    key={index}
+                    onMouseEnter={() => setHoveredTestIndex(index)}
+                    onMouseLeave={() => setHoveredTestIndex(null)}
+                    className={hoveredTestIndex === index ? 'test-row-hovered' : ''}
+                  >
                     <td className="verify-desc">{test.description || `Test ${index + 1}`}</td>
                     {inputParams.map((param) => {
                       const value =

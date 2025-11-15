@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { TreeTable, TreeState, Row } from 'cp-react-tree-table';
 import { buildLogicTree, TreeNodeData } from '../utils/treeUtils';
 
@@ -16,6 +16,11 @@ export const ExpressionTree: React.FC<ExpressionTreeProps> = ({ expr, inputDefau
   }, [expr, inputDefaults]);
 
   const [treeState, setTreeState] = useState(() => TreeState.expandAll(treeData));
+
+  // Update tree state when tree data changes
+  useEffect(() => {
+    setTreeState(TreeState.expandAll(treeData));
+  }, [treeData]);
 
   // Render the expression/operation column
   const renderExpressionCell = (row: Row<TreeNodeData>) => {
