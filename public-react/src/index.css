@@ -568,7 +568,7 @@ body {
 }
 
 .expression-tree-table .cp_tree-table_cell {
-    padding: 10px 15px;
+    padding: 0;
     border-right: 1px solid #ecf0f1;
 }
 

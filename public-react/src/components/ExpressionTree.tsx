@@ -66,12 +66,15 @@ export const ExpressionTree: React.FC<ExpressionTreeProps> = ({ expr, inputDefau
     return (
       <div
         style={{
-          paddingLeft: `${indent}px`,
+          paddingLeft: `${indent + 15}px`,
+          paddingRight: '15px',
+          paddingTop: '10px',
+          paddingBottom: '10px',
           display: 'flex',
           alignItems: 'center',
           backgroundColor,
-          minHeight: '100%',
-          padding: '10px 15px',
+          height: '100%',
+          boxSizing: 'border-box',
         }}
       >
         {hasChildren && (
@@ -105,7 +108,16 @@ export const ExpressionTree: React.FC<ExpressionTreeProps> = ({ expr, inputDefau
     }
 
     return (
-      <div style={{ backgroundColor, minHeight: '100%', padding: '10px 15px' }}>
+      <div
+        style={{
+          backgroundColor,
+          height: '100%',
+          padding: '10px 15px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
         <span className={`type-badge type-${row.data.type}`}>{row.data.type}</span>
       </div>
     );
@@ -122,7 +134,16 @@ export const ExpressionTree: React.FC<ExpressionTreeProps> = ({ expr, inputDefau
     }
 
     return (
-      <div style={{ backgroundColor, minHeight: '100%', padding: '10px 15px' }}>
+      <div
+        style={{
+          backgroundColor,
+          height: '100%',
+          padding: '10px 15px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
         <span className="value-display">{row.data.value}</span>
       </div>
     );
@@ -146,11 +167,15 @@ export const ExpressionTree: React.FC<ExpressionTreeProps> = ({ expr, inputDefau
       <div
         style={{
           backgroundColor,
-          minHeight: '100%',
+          height: '100%',
           padding: '10px 15px',
           color: 'white',
           textAlign: 'center',
           fontWeight: 'bold',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
         {symbol}
