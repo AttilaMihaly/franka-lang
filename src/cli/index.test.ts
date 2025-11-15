@@ -76,10 +76,7 @@ describe('CLI Functions', () => {
     });
 
     test('should run a module with specific function', () => {
-      const result = runFile(
-        path.join(__dirname, '../../examples/multi-function.yaml'),
-        'greet'
-      );
+      const result = runFile(path.join(__dirname, '../../examples/multi-function.yaml'), 'greet');
       expect(result).toBe('Hello, World!');
       expect(mockConsoleLog).toHaveBeenCalledWith('Function: greet');
     });
@@ -92,7 +89,7 @@ describe('CLI Functions', () => {
     test('should throw error for invalid YAML syntax', () => {
       const tempFile = path.join(__dirname, '../../tmp-test-invalid.yaml');
       fs.writeFileSync(tempFile, 'invalid: yaml: content:');
-      
+
       try {
         expect(() => runFile(tempFile)).toThrow();
       } finally {
@@ -111,16 +108,11 @@ describe('CLI Functions', () => {
     test('should check a valid module file', () => {
       const result = checkFile(path.join(__dirname, '../../examples/multi-function.yaml'));
       expect(result).toEqual({ hasErrors: false });
-      expect(mockConsoleLog).toHaveBeenCalledWith(
-        expect.stringContaining('Syntax is valid')
-      );
+      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('Syntax is valid'));
     });
 
     test('should check a specific function in a module', () => {
-      const result = checkFile(
-        path.join(__dirname, '../../examples/multi-function.yaml'),
-        'greet'
-      );
+      const result = checkFile(path.join(__dirname, '../../examples/multi-function.yaml'), 'greet');
       expect(result).toEqual({ hasErrors: false });
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('Checking function'));
     });
@@ -139,10 +131,7 @@ describe('CLI Functions', () => {
     });
 
     test('should display function input count', () => {
-      checkFile(
-        path.join(__dirname, '../../examples/conditional-outputs.yaml'),
-        'main'
-      );
+      checkFile(path.join(__dirname, '../../examples/conditional-outputs.yaml'), 'main');
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('Inputs:'));
     });
 
@@ -181,9 +170,7 @@ functions:
 
       try {
         checkFile(tempFile);
-        expect(mockConsoleLog).toHaveBeenCalledWith(
-          expect.stringContaining('No spec file found')
-        );
+        expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('No spec file found'));
       } finally {
         if (fs.existsSync(tempFile)) {
           fs.unlinkSync(tempFile);
@@ -337,4 +324,3 @@ functions:
     });
   });
 });
-

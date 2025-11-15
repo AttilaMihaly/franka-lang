@@ -105,18 +105,14 @@ describe('Web Server API Endpoints', () => {
   });
 
   test('GET /api/module should return module info', async () => {
-    const response = await request(app)
-      .get('/api/module')
-      .query({ path: 'examples/hello.yaml' });
+    const response = await request(app).get('/api/module').query({ path: 'examples/hello.yaml' });
     expect([200, 404]).toContain(response.status); // May not exist in test env
   });
 
   test('POST /api/execute should execute a module', async () => {
-    const response = await request(app)
-      .post('/api/execute')
-      .send({
-        code: 'module:\n  name: Test\nfunctions:\n  main:\n    logic: "test"',
-      });
+    const response = await request(app).post('/api/execute').send({
+      code: 'module:\n  name: Test\nfunctions:\n  main:\n    logic: "test"',
+    });
     expect([200, 400, 404, 500]).toContain(response.status); // Various possible outcomes
   });
 });
@@ -155,4 +151,3 @@ describe('Web Server Route Handlers Logic', () => {
     expect(Array.isArray(spec.syntax.operations.control)).toBe(true);
   });
 });
-

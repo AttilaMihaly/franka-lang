@@ -23,7 +23,7 @@ function runFile(filePath: string, functionName?: string) {
   console.log('---------------');
   console.log(result);
   console.log('---------------');
-  
+
   return result;
 }
 
@@ -130,7 +130,7 @@ function checkFile(filePath: string, functionName?: string) {
   if (hasErrors) {
     throw new Error('Checks failed');
   }
-  
+
   return { hasErrors };
 }
 
