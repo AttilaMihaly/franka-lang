@@ -103,7 +103,16 @@ export const FunctionCard: React.FC<FunctionCardProps> = ({ name, func, tests })
       {/* Logic */}
       <div className="function-details">
         <h4>Logic</h4>
-        <ExpressionTree expr={func.logic} />
+        <ExpressionTree
+          expr={func.logic}
+          inputDefaults={
+            func.input
+              ? Object.fromEntries(
+                  Object.entries(func.input).map(([name, def]) => [name, def.default])
+                )
+              : {}
+          }
+        />
       </div>
 
       {/* Verification */}
