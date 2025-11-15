@@ -1,159 +1,184 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { z } from 'zod';
 import { loadLanguageSpec } from '../shared/spec-loader';
 
-interface McpRequest {
-  method: string;
-  params?: unknown;
-  id?: string | number;
-}
-
-interface McpResponse {
-  result?: unknown;
-  error?: {
-    code: number;
-    message: string;
-  };
-  id?: string | number;
-}
-
-class FrankaMcpServer {
-  private spec = loadLanguageSpec();
-
-  handleRequest(request: McpRequest): McpResponse {
-    const { method, params, id } = request;
-
-    try {
-      let result;
-
-      switch (method) {
-        case 'initialize':
-          result = this.handleInitialize();
-          break;
-
-        case 'getCapabilities':
-          result = this.handleGetCapabilities();
-          break;
-
-        case 'getKeywords':
-          result = this.handleGetKeywords();
-          break;
-
-        case 'getSyntax':
-          result = this.handleGetSyntax();
-          break;
-
-        case 'getExamples':
-          result = this.handleGetExamples();
-          break;
-
-        case 'checkSyntax':
-          result = this.handleCheckSyntax(params as { code: string });
-          break;
-
-        default:
-          throw new Error(`Unknown method: ${method}`);
-      }
-
-      return { result, id };
-    } catch (error) {
-      return {
-        error: {
-          code: -32603,
-          message: error instanceof Error ? error.message : 'Internal error',
-        },
-        id,
-      };
-    }
-  }
-
-  private handleInitialize() {
-    return {
-      name: this.spec.metadata.name,
-      version: this.spec.metadata.version,
-      description: this.spec.metadata.description,
-      capabilities: this.spec.tooling.mcp.capabilities,
-    };
-  }
-
-  private handleGetCapabilities() {
-    return {
-      capabilities: this.spec.tooling.mcp.capabilities,
-      description: this.spec.tooling.mcp.description,
-    };
-  }
-
-  private handleGetKeywords() {
-    return {
-      operations: this.spec.syntax.operations,
-      string_operations: this.spec.syntax.operations.string,
-      boolean_operations: this.spec.syntax.operations.boolean,
-      control_operations: this.spec.syntax.operations.control,
-    };
-  }
-
-  private handleGetSyntax() {
-    return {
-      syntax: this.spec.syntax,
-    };
-  }
-
-  private handleGetExamples() {
-    return {
-      examples: this.spec.examples,
-    };
-  }
-
-  private handleCheckSyntax(_params: { code: string }) {
-    // Placeholder for syntax checking
-    // In a real implementation, this would parse and validate the code
-    return {
-      valid: true,
-      message: 'Syntax checking not yet fully implemented',
-      warnings: [],
-      errors: [],
-    };
-  }
-
-  start(port = 3001) {
-    console.log(`Franka MCP Server v${this.spec.metadata.version}`);
-    console.log(`Starting MCP server on port ${port}...`);
-    console.log('');
-    console.log('Supported methods:');
-    console.log('  - initialize: Get server information');
-    console.log('  - getCapabilities: Get server capabilities');
-    console.log('  - getKeywords: Get language operations');
-    console.log('  - getSyntax: Get complete syntax specification');
-    console.log('  - getExamples: Get code examples');
-    console.log('  - checkSyntax: Validate Franka code (YAML format)');
-    console.log('');
-    console.log('Note: Franka programs use YAML-based syntax.');
-    console.log('Note: Full MCP protocol implementation is a placeholder.');
-    console.log('This provides the basic structure for future implementation.');
-
-    // In a real MCP server, we would set up a proper JSON-RPC server
-    // For now, this is a demonstration of the structure
-  }
-}
-
-function main() {
+async function main() {
   const spec = loadLanguageSpec();
 
-  const program = new Command();
+  // Create MCP server using the official SDK
+  const server = new McpServer({
+    name: spec.metadata.name,
+    version: spec.metadata.version,
+  });
 
-  program
-    .name('franka-mcp')
-    .description('Franka MCP Server')
-    .version(spec.metadata.version)
-    .option('-p, --port <number>', 'Port to run the server on', '3001')
-    .action((options) => {
-      const server = new FrankaMcpServer();
-      const port = parseInt(options.port, 10);
-      server.start(port);
-    });
+  // Register tools for language operations
 
-  program.parse(process.argv);
+  // Tool: Get language keywords and operations
+  server.registerTool(
+    'get-keywords',
+    {
+      title: 'Get Language Keywords',
+      description: 'Get all language operations and keywords',
+      inputSchema: {},
+      outputSchema: {
+        operations: z.record(z.array(z.any())),
+        string_operations: z.array(z.any()),
+        boolean_operations: z.array(z.any()),
+        control_operations: z.array(z.any()),
+      },
+    },
+    async () => {
+      const output = {
+        operations: spec.syntax.operations,
+        string_operations: spec.syntax.operations.string,
+        boolean_operations: spec.syntax.operations.boolean,
+        control_operations: spec.syntax.operations.control,
+      };
+      return {
+        content: [{ type: 'text', text: JSON.stringify(output, null, 2) }],
+        structuredContent: output,
+      };
+    }
+  );
+
+  // Tool: Check syntax of Franka code
+  server.registerTool(
+    'check-syntax',
+    {
+      title: 'Check Syntax',
+      description: 'Validate Franka code (YAML format)',
+      inputSchema: {
+        code: z.string().describe('The Franka code to validate'),
+      },
+      outputSchema: {
+        valid: z.boolean(),
+        message: z.string(),
+        warnings: z.array(z.string()),
+        errors: z.array(z.string()),
+      },
+    },
+    async ({ code: _code }) => {
+      // Placeholder for syntax checking
+      // In a real implementation, this would parse and validate the code
+      const output = {
+        valid: true,
+        message: 'Syntax checking not yet fully implemented',
+        warnings: [] as string[],
+        errors: [] as string[],
+      };
+      return {
+        content: [{ type: 'text', text: JSON.stringify(output, null, 2) }],
+        structuredContent: output,
+      };
+    }
+  );
+
+  // Register resources for language specification
+
+  // Resource: Complete language syntax
+  server.registerResource(
+    'syntax',
+    'franka://spec/syntax',
+    {
+      title: 'Language Syntax',
+      description: 'Complete Franka language syntax specification',
+      mimeType: 'application/json',
+    },
+    async (uri) => ({
+      contents: [
+        {
+          uri: uri.href,
+          text: JSON.stringify(spec.syntax, null, 2),
+          mimeType: 'application/json',
+        },
+      ],
+    })
+  );
+
+  // Resource: Language examples
+  server.registerResource(
+    'examples',
+    'franka://spec/examples',
+    {
+      title: 'Language Examples',
+      description: 'Franka code examples demonstrating language features',
+      mimeType: 'application/json',
+    },
+    async (uri) => ({
+      contents: [
+        {
+          uri: uri.href,
+          text: JSON.stringify(spec.examples, null, 2),
+          mimeType: 'application/json',
+        },
+      ],
+    })
+  );
+
+  // Resource: Language metadata
+  server.registerResource(
+    'metadata',
+    'franka://spec/metadata',
+    {
+      title: 'Language Metadata',
+      description: 'Franka language metadata and version information',
+      mimeType: 'application/json',
+    },
+    async (uri) => ({
+      contents: [
+        {
+          uri: uri.href,
+          text: JSON.stringify(spec.metadata, null, 2),
+          mimeType: 'application/json',
+        },
+      ],
+    })
+  );
+
+  // Resource: Complete language specification
+  server.registerResource(
+    'spec',
+    'franka://spec/complete',
+    {
+      title: 'Complete Language Specification',
+      description: 'Full Franka language specification',
+      mimeType: 'application/json',
+    },
+    async (uri) => ({
+      contents: [
+        {
+          uri: uri.href,
+          text: JSON.stringify(spec, null, 2),
+          mimeType: 'application/json',
+        },
+      ],
+    })
+  );
+
+  // Connect to stdio transport for MCP communication
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+
+  // Log to stderr (stdout is reserved for MCP protocol)
+  console.error('Franka MCP Server started');
+  console.error(`Version: ${spec.metadata.version}`);
+  console.error('Transport: stdio');
+  console.error('');
+  console.error('Available tools:');
+  console.error('  - get-keywords: Get language operations and keywords');
+  console.error('  - check-syntax: Validate Franka code');
+  console.error('');
+  console.error('Available resources:');
+  console.error('  - franka://spec/syntax: Language syntax specification');
+  console.error('  - franka://spec/examples: Code examples');
+  console.error('  - franka://spec/metadata: Language metadata');
+  console.error('  - franka://spec/complete: Complete specification');
 }
 
-main();
+main().catch((error) => {
+  console.error('Fatal error:', error);
+  process.exit(1);
+});
