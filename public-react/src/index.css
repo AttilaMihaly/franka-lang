@@ -525,3 +525,120 @@ body {
     padding-left: 10px;
     border-left: 2px solid #3498db;
 }
+
+/* Tree Table Styles */
+.expression-tree-table {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    background: white;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #ecf0f1;
+}
+
+.expression-tree-table .cp_tree-table {
+    border: none;
+}
+
+.expression-tree-table .cp_tree-table_header {
+    background-color: #34495e;
+    color: white;
+    font-weight: 600;
+    border-bottom: 2px solid #2c3e50;
+}
+
+.expression-tree-table .cp_tree-table_header-cell {
+    padding: 12px 15px;
+    text-align: left;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.expression-tree-table .cp_tree-table_row {
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.expression-tree-table .cp_tree-table_row:hover {
+    background-color: #f8f9fa;
+}
+
+.expression-tree-table .cp_tree-table_cell {
+    padding: 10px 15px;
+    border-right: 1px solid #ecf0f1;
+}
+
+.tree-node-label {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.type-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: lowercase;
+}
+
+.type-string {
+    background-color: #ffeaa7;
+    color: #d63031;
+}
+
+.type-number {
+    background-color: #74b9ff;
+    color: #0984e3;
+}
+
+.type-boolean {
+    background-color: #dfe6e9;
+    color: #2d3436;
+}
+
+.type-null {
+    background-color: #b2bec3;
+    color: #636e72;
+}
+
+.type-operation {
+    background-color: #fab1a0;
+    color: #e17055;
+}
+
+.type-array {
+    background-color: #a29bfe;
+    color: #6c5ce7;
+}
+
+.type-let-binding,
+.type-let-in {
+    background-color: #fd79a8;
+    color: #e84393;
+}
+
+.type-conditional {
+    background-color: #fdcb6e;
+    color: #e17055;
+}
+
+.type-expression {
+    background-color: #81ecec;
+    color: #00b894;
+}
+
+.type-object {
+    background-color: #dfe6e9;
+    color: #2d3436;
+}
+
+.type-unknown {
+    background-color: #b2bec3;
+    color: #636e72;
+}
+
+.value-display {
+    color: #27ae60;
+    font-family: 'Courier New', monospace;
+    font-weight: 500;
+}
+

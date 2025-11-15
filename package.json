@@ -53,6 +53,7 @@
     "@types/express": "^5.0.5",
     "@types/js-yaml": "^4.0.9",
     "commander": "^14.0.2",
+    "cp-react-tree-table": "^1.1.2",
     "express": "^5.1.0",
     "js-yaml": "^4.1.0",
     "react": "^19.2.0",
