@@ -122,10 +122,30 @@ npm run format:check
 
 ### Test Requirements
 
-- **All tests must pass** before committing (140 tests)
+- **All tests must pass** before committing (200+ tests)
+- **Coverage must be ≥90%** - enforced by `npm run test:coverage`
 - **Add tests for new features** - Follow existing test patterns
 - **Update tests for changes** - Don't break existing tests
 - **Test edge cases** - Empty inputs, invalid data, boundary conditions
+
+### Coverage Requirements
+
+**Minimum 90% line coverage is enforced:**
+
+- Run `npm run test:coverage` to check coverage and enforce threshold
+- Coverage report is in `coverage/` directory
+- Focus on testing business logic in `src/shared/` modules
+- Entry point files (`src/cli`, `src/mcp`, `src/web`) have integration tests
+- Use `scripts/check-coverage.js` for automated checking
+
+**Before committing code:**
+
+```bash
+npm run test:coverage  # Must pass 90% threshold
+npm run build
+npm run lint
+npm run format:check
+```
 
 ## Common Patterns
 

@@ -9,6 +9,7 @@ build/
 *.d.ts
 !jest.config.js
 !public/assets/*.js
+!scripts/*.js
 
 # Testing
 coverage/
